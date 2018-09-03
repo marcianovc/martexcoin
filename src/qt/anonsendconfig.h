@@ -3,28 +3,28 @@
 
 #include <QDialog>
 
-namespace Ui {
-    class AnonsendConfig;
+namespace Ui
+{
+class AnonSendConfig;
 }
 class WalletModel;
 
 /** Multifunctional dialog to ask for passphrases. Used for encryption, unlocking, and changing the passphrase.
  */
-class AnonsendConfig : public QDialog
+class AnonSendConfig : public QDialog
 {
     Q_OBJECT
 
 public:
+    AnonSendConfig(QWidget* parent = 0);
+    ~AnonSendConfig();
 
-    AnonsendConfig(QWidget *parent = 0);
-    ~AnonsendConfig();
-
-    void setModel(WalletModel *model);
+    void setModel(WalletModel* model);
 
 
 private:
-    Ui::AnonsendConfig *ui;
-    WalletModel *model;
+    Ui::AnonSendConfig* ui;
+    WalletModel* model;
     void configure(bool enabled, int coins, int rounds);
 
 private slots:

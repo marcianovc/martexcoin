@@ -1,6 +1,9 @@
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "anonsend-relay.h"
-
 
 CAnonSendRelay::CAnonSendRelay()
 {
@@ -25,13 +28,9 @@ std::string CAnonSendRelay::ToString()
 {
     std::ostringstream info;
 
-    info << "vin: " << vinMasternode.ToString() <<
-        " nBlockHeight: " << (int)nBlockHeight <<
-        " nRelayType: "  << (int)nRelayType <<
-        " in " << in.ToString() <<
-        " out " << out.ToString();
-        
-    return info.str();   
+    info << "vin: " << vinMasternode.ToString() << " nBlockHeight: " << (int)nBlockHeight << " nRelayType: " << (int)nRelayType << " in " << in.ToString() << " out " << out.ToString();
+
+    return info.str();
 }
 
 bool CAnonSendRelay::Sign(std::string strSharedKey)
@@ -42,18 +41,17 @@ bool CAnonSendRelay::Sign(std::string strSharedKey)
     CPubKey pubkey2;
     std::string errorMessage = "";
 
-    if(!anonSendSigner.SetKey(strSharedKey, errorMessage, key2, pubkey2))
-    {
+    if (!AnonSendSigner.SetKey(strSharedKey, errorMessage, key2, pubkey2)) {
         LogPrintf("CAnonSendRelay():Sign - ERROR: Invalid shared key: '%s'\n", errorMessage.c_str());
         return false;
     }
 
-    if(!anonSendSigner.SignMessage(strMessage, errorMessage, vchSig2, key2)) {
+    if (!AnonSendSigner.SignMessage(strMessage, errorMessage, vchSig2, key2)) {
         LogPrintf("CAnonSendRelay():Sign - Sign message failed\n");
         return false;
     }
 
-    if(!anonSendSigner.VerifyMessage(pubkey2, vchSig2, strMessage, errorMessage)) {
+    if (!AnonSendSigner.VerifyMessage(pubkey2, vchSig2, strMessage, errorMessage)) {
         LogPrintf("CAnonSendRelay():Sign - Verify message failed\n");
         return false;
     }
@@ -69,13 +67,12 @@ bool CAnonSendRelay::VerifyMessage(std::string strSharedKey)
     CPubKey pubkey2;
     std::string errorMessage = "";
 
-    if(!anonSendSigner.SetKey(strSharedKey, errorMessage, key2, pubkey2))
-    {
+    if (!AnonSendSigner.SetKey(strSharedKey, errorMessage, key2, pubkey2)) {
         LogPrintf("CAnonSendRelay()::VerifyMessage - ERROR: Invalid shared key: '%s'\n", errorMessage.c_str());
         return false;
     }
 
-    if(!anonSendSigner.VerifyMessage(pubkey2, vchSig2, strMessage, errorMessage)) {
+    if (!AnonSendSigner.VerifyMessage(pubkey2, vchSig2, strMessage, errorMessage)) {
         LogPrintf("CAnonSendRelay()::VerifyMessage - Verify message failed\n");
         return false;
     }
@@ -85,12 +82,13 @@ bool CAnonSendRelay::VerifyMessage(std::string strSharedKey)
 
 void CAnonSendRelay::Relay()
 {
-    int nCount = std::min(mnodeman.CountEnabled(), 20);
-    int nRank1 = (rand() % nCount)+1; 
-    int nRank2 = (rand() % nCount)+1; 
+    int nCount = std::min(mnodeman.CountEnabled(ActiveProtocol()), 20);
+    int nRank1 = (rand() % nCount) + 1;
+    int nRank2 = (rand() % nCount) + 1;
 
     //keep picking another second number till we get one that doesn't match
-    while(nRank1 == nRank2) nRank2 = (rand() % nCount)+1;
+    while (nRank1 == nRank2)
+        nRank2 = (rand() % nCount) + 1;
 
     //printf("rank 1 - rank2 %d %d \n", nRank1, nRank2);
 
@@ -101,19 +99,16 @@ void CAnonSendRelay::Relay()
 
 void CAnonSendRelay::RelayThroughNode(int nRank)
 {
-    CMasternode* pmn = mnodeman.GetMasternodeByRank(nRank, nBlockHeight, MIN_POOL_PEER_PROTO_VERSION);
+    CMasternode* pmn = mnodeman.GetMasternodeByRank(nRank, nBlockHeight, ActiveProtocol());
 
-    if(pmn != NULL){
+    if (pmn != NULL) {
         //printf("RelayThroughNode %s\n", pmn->addr.ToString().c_str());
-        if(ConnectNode((CAddress)pmn->addr, NULL, true)){
+        CNode* pnode = ConnectNode((CAddress)pmn->addr, NULL, false);
+        if (pnode) {
             //printf("Connected\n");
-            CNode* pNode = FindNode(pmn->addr);
-            if(pNode)
-            {
-                //printf("Found\n");
-                pNode->PushMessage("dsr", (*this));
-                return;
-            }
+            pnode->PushMessage("dsr", (*this));
+            pnode->Release();
+            return;
         }
     } else {
         //printf("RelayThroughNode NULL\n");

@@ -1,14 +1,13 @@
-
-// Copyright (c) 2014-2015 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef ANONSEND_RELAY_H
 #define ANONSEND_RELAY_H
 
-#include "core.h"
-#include "main.h"
 #include "activemasternode.h"
+#include "main.h"
 #include "masternodeman.h"
 
 
@@ -25,17 +24,20 @@ public:
 
     CAnonSendRelay();
     CAnonSendRelay(CTxIn& vinMasternodeIn, vector<unsigned char>& vchSigIn, int nBlockHeightIn, int nRelayTypeIn, CTxIn& in2, CTxOut& out2);
-    
-    IMPLEMENT_SERIALIZE
-    (
-    	READWRITE(vinMasternode);
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
+    {
+        READWRITE(vinMasternode);
         READWRITE(vchSig);
         READWRITE(vchSig2);
         READWRITE(nBlockHeight);
         READWRITE(nRelayType);
         READWRITE(in);
         READWRITE(out);
-    )
+    }
 
     std::string ToString();
 
@@ -44,7 +46,6 @@ public:
     void Relay();
     void RelayThroughNode(int nRank);
 };
-
 
 
 #endif
