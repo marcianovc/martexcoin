@@ -7,7 +7,7 @@ architectures:
 packages:
 - "faketime"
 remotes:
-- "url": "https://gitlab.com/marcianovc/martexcoin-detached-sigs.git"
+- "url": "https://github.com/marcianovc/martexcoin-detached-sigs.git"
   "dir": "signature"
 files:
 - "martex-osx-unsigned.tar.gz"
