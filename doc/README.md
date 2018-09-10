@@ -41,7 +41,7 @@ The following are developer notes on how to build MarteX on your native platform
 
 Development
 ---------------------
-The MarteX repo's [root README](https://github.com/marcianovc/martexcoin/blob/master/README.md) contains relevant information on the development process and automated testing.
+The MarteX repo's [root README](https://gitlab.com/marcianovc/martexcoin/blob/master/README.md) contains relevant information on the development process and automated testing.
 
 - [Developer Notes](developer-notes.md)
 - [Multiwallet Qt Development](multiwallet-qt.md)
@@ -56,7 +56,7 @@ The MarteX repo's [root README](https://github.com/marcianovc/martexcoin/blob/ma
 ### Resources
 
 * Discuss on the [BitcoinTalk](https://bitcointalk.org/index.php?topic=1354130.0) or the [MarteX](http://forum.martexcoin.org) forum.
-* Join the [MarteX-Dev](https://github.com/marcianovc/martexcoin) Slack group ([Sign-Up](https://github.com/marcianovc/martexcoin).
+* Join the [MarteX-Dev](https://gitlab.com/marcianovc/martexcoin) Slack group ([Sign-Up](https://gitlab.com/marcianovc/martexcoin).
 
 ### Miscellaneous
 - [Assets Attribution](assets-attribution.md)

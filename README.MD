@@ -16,7 +16,7 @@ https://bitcointalk.org/index.php?topic=1354130.0
 <tr><td>Block Time</td><td>120 Seconds</td></tr>
 <tr><td>Maturity</td><td>150 Confirmations</td></tr>
 <tr><td>Difficulty Retargeting</td><td>Every Block</td></tr>
-<tr><td>Max Coin Supply (PoS Phase)</td><td>Infinite</td></tr>
+<tr><td>Max Coin Supply </td><td>11600000</td></tr>
 </table>
 
 ## PoS Rewards Breakdown ##
