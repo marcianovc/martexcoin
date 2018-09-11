@@ -179,7 +179,7 @@ public:
         nZerocoinStartTime = 1546214400; //Mon, 31 Dez 2018 00:00:00 GMT
         nBlockEnforceInvalidUTXO = 1001; //Start enforcing the invalid UTXO's
 
-	genesis = CreateGenesisBlock(1399939200, 857701, 0x1e3fffff, 1, 50 * COIN);
+	genesis = CreateGenesisBlock(1399939200, 857701, 0x1e3fffff, 1, 0 * COIN);
         hashGenesisBlock = genesis.GetHash();
 	//printf("MAIN genesis.GetHash = %s\n", genesis.GetHash().ToString().c_str());
 	//printf("MAIN genesis.MerkleRoot = %s\n", genesis.hashMerkleRoot.ToString().c_str());
@@ -271,7 +271,7 @@ public:
         nZerocoinStartHeight = 201;
 	nSubsidyHalvingInterval = 150;
 
-        genesis = CreateGenesisBlock(1399939200, 857701, 0x1e3fffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1399939200, 857701, 0x1e3fffff, 1, 0 * COIN);
         hashGenesisBlock = genesis.GetHash();
         //printf("TESTNET genesis.GetHash = %s\n", genesis.GetHash().ToString().c_str());
         //printf("TESTNET genesis.MerkleRoot = %s\n", genesis.hashMerkleRoot.ToString().c_str());
@@ -303,7 +303,7 @@ public:
         strSporkKey = "029edc4fc53218495a1ec17ba3175653d18084deb46244ed0d5cf470e4f2f64ebc";
         strAnonSendPoolDummyAddress = "MLJoZZky8GtfYKiRY2Jzxfd4KTEK3drZv2";
         nStartMasternodePayments = 1546214400; //Mon, 31 Dez 2018 00:00:00 GMT
-        nBudget_Fee_Confirmations = 3; // Number of confirmations for the finalization fee. We have to make this very short 
+        nBudget_Fee_Confirmations = 3; // Number of confirmations for the finalization fee. We have to make this very short
                                        // here because we only have a 8 block finalization window on testnet
     }
     const Checkpoints::CCheckpointData& Checkpoints() const
