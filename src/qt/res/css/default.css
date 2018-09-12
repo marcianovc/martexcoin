@@ -1,5 +1,5 @@
 /****************************************************************************************/
-/***************** [COLOR CODES] DEEP RED:#802B15 RED:#6e91a1 *******************/
+/***************** [COLOR CODES] DEEP RED:#27556C RED:#6e91a1 *******************/
 /****************************************************************************************/
 
 
@@ -174,7 +174,7 @@ background-color:#dddddd;
 /****************************************************************************************/
 
 QPushButton { /* Global Button Style */
-background-color:#802B15;
+background-color:#27556C;
 border:0;
 color:#ffffff;
 font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
@@ -221,7 +221,7 @@ background:#f2f2f2;
 }
 
 QComboBox:editable {
-background:#802B15;
+background:#27556C;
 color:#616161;
 border:0px solid transparent;
 }
@@ -321,7 +321,7 @@ outline:0;
 
 QHeaderView::section { /* Table Header Sections */
 qproperty-alignment:center;
-background-color:qlineargradient(x1: 0, y1: 0, x2: 0, y2: 0.25, stop: 0 #802B15, stop: 1 #6e91a1);
+background-color:qlineargradient(x1: 0, y1: 0, x2: 0, y2: 0.25, stop: 0 #27556C, stop: 1 #6e91a1);
 color:#fff;
 min-height:25px;
 font-weight:bold;
@@ -465,7 +465,7 @@ background-image: url(':/images/rightArrow_small');
 }
 
 QSlider::handle:horizontal {
-background-color:#802B15;
+background-color:#27556C;
 }
 
 QSlider::sub-page:horizontal {
@@ -752,19 +752,19 @@ color:#818181;
 }
 
 QWidget#PrivacyDialog QProgressBar#anonsendProgress::chunk {
-background-color: #802B15;
+background-color: #27556C;
 width:1px;
 }
 
 QWidget#PrivacyDialog QLabel#labelzMARTEXActions {
 font-size:15px;
-color:#802B15;
+color:#27556C;
 font-weight:bold;
 }
 
 QWidget#PrivacyDialog QLabel#labelzMARTEXStats {
 font-size:15px;
-color:#802B15;
+color:#27556C;
 font-weight:bold;
 }
 
@@ -829,7 +829,7 @@ min-width:180px;
 }
 
 QDialog#RPCConsole QWidget#tab_peers QLabel#peerHeading { /* Peers Info Header */
-color:#802B15;
+color:#27556C;
 }
 
 QDialog#RPCConsole QTableView#peerWidget::item { /* Peers Table Items */
@@ -911,7 +911,7 @@ QWidget .QFrame#frame .QLabel#label_5 { /* MARTEX Balances Label */
 qproperty-alignment: 'AlignVCenter | AlignLeft';
 min-width:160px;
 background-color:transparent;
-color:#802B15;
+color:#27556C;
 font-weight:bold;
 font-size:15px;
 margin-right:5px;
@@ -1043,7 +1043,7 @@ QWidget .QFrame#frame_4 .QLabel#label_5z_3 { /* Zerocoin Balance Label */
 qproperty-alignment: 'AlignVCenter | AlignLeft';
 min-width:160px;
 background-color:transparent;
-color:#802B15;
+color:#27556C;
 font-weight:bold;
 font-size:15px;
 margin-right:5px;
@@ -1140,7 +1140,7 @@ QWidget .QFrame#frame_3 .QLabel#label_5z { /* Combined Balance Label */
 qproperty-alignment: 'AlignVCenter | AlignLeft';
 min-width:160px;
 background-color:transparent;
-color:#802B15;
+color:#27556C;
 font-weight:bold;
 font-size:15px;
 margin-right:5px;
@@ -1273,7 +1273,7 @@ background-repeat:none;
 
 QWidget .QFrame#frame_2 .QLabel#label_4 { /* Recent Transactions Label */
 min-width:180px;
-color:#802B15;
+color:#27556C;
 margin-left:67px;
 margin-top:5px;
 margin-right:5px;
@@ -1321,7 +1321,7 @@ min-height:25px;
 }
 
 QDialog#SendCoinsDialog .QFrame#frameCoinControl .QLabel#labelCoinControlFeatures { /* Coin Control Header */
-color:#802B15;
+color:#27556C;
 font-weight:bold;
 font-size:15px;
 }
@@ -1714,7 +1714,7 @@ border:1px solid #9e9e9e;
 }
 
 QWidget#ReceiveCoinsDialog .QFrame#frame .QLabel#label_6 { /* Requested Payments History Label */
-color:#802B15;
+color:#27556C;
 font-weight:bold;
 font-size:14px;
 }
