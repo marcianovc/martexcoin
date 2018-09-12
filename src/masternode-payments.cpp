@@ -296,7 +296,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
             payee = GetScriptForDestination(winningNode->pubKeyCollateralAddress.GetID());
         } else {
 
-            std::vector<unsigned char> vchPubKey = ParseHex((!TestNet() ? mMVCDEV : tMVCDEV));
+            std::vector<unsigned char> vchPubKey = ParseHex((Params().NetworkID() == CBaseChainParams::TESTNET ? tMVCDEV : mMVCDEV));
             CPubKey pubKey(vchPubKey);
 
             bool isValid = pubKey.IsValid();
