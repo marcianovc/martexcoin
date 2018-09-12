@@ -163,7 +163,7 @@ Value importaddress(const Array& params, bool fHelp)
 
     CScript script;
 
-    CBitcoinAddress address(params[0].get_str());
+    CMarteXAddress address(params[0].get_str());
     if (address.IsValid()) {
         script = GetScriptForDestination(address.Get());
     } else if (IsHex(params[0].get_str())) {
@@ -256,7 +256,7 @@ Value importwallet(const Array& params, bool fHelp)
         assert(key.VerifyPubKey(pubkey));
         CKeyID keyid = pubkey.GetID();
         if (pwalletMain->HaveKey(keyid)) {
-            LogPrintf("Skipping import of %s (key already present)\n", CBitcoinAddress(keyid).ToString());
+            LogPrintf("Skipping import of %s (key already present)\n", CMarteXAddress(keyid).ToString());
             continue;
         }
         int64_t nTime = DecodeDumpTime(vstr[1]);
@@ -274,7 +274,7 @@ Value importwallet(const Array& params, bool fHelp)
                 fLabel = true;
             }
         }
-        LogPrintf("Importing %s...\n", CBitcoinAddress(keyid).ToString());
+        LogPrintf("Importing %s...\n", CMarteXAddress(keyid).ToString());
         if (!pwalletMain->AddKeyPubKey(key, pubkey)) {
             fGood = false;
             continue;
@@ -321,7 +321,7 @@ Value dumpprivkey(const Array& params, bool fHelp)
     EnsureWalletIsUnlocked();
 
     string strAddress = params[0].get_str();
-    CBitcoinAddress address;
+    CMarteXAddress address;
     if (!address.SetString(strAddress))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
     CKeyID keyID;
@@ -374,7 +374,7 @@ Value dumpwallet(const Array& params, bool fHelp)
     for (std::vector<std::pair<int64_t, CKeyID> >::const_iterator it = vKeyBirth.begin(); it != vKeyBirth.end(); it++) {
         const CKeyID& keyid = it->second;
         std::string strTime = EncodeDumpTime(it->first);
-        std::string strAddr = CBitcoinAddress(keyid).ToString();
+        std::string strAddr = CMarteXAddress(keyid).ToString();
         CKey key;
         if (pwalletMain->GetKey(keyid, key)) {
             if (pwalletMain->mapAddressBook.count(keyid)) {
@@ -410,7 +410,7 @@ Value bip38encrypt(const Array& params, bool fHelp)
     string strAddress = params[0].get_str();
     string strPassphrase = params[1].get_str();
 
-    CBitcoinAddress address;
+    CMarteXAddress address;
     if (!address.SetString(strAddress))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
     CKeyID keyID;
@@ -467,7 +467,7 @@ Value bip38decrypt(const Array& params, bool fHelp)
     CPubKey pubkey = key.GetPubKey();
     pubkey.IsCompressed();
     assert(key.VerifyPubKey(pubkey));
-    result.push_back(Pair("Address", CBitcoinAddress(pubkey.GetID()).ToString()));
+    result.push_back(Pair("Address", CMarteXAddress(pubkey.GetID()).ToString()));
     CKeyID vchAddress = pubkey.GetID();
     {
         pwalletMain->MarkDirty();

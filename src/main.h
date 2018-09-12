@@ -107,7 +107,7 @@ static const unsigned int DATABASE_WRITE_INTERVAL = 3600;
 static const unsigned int MAX_REJECT_MESSAGE_LENGTH = 111;
 
 /** Enable bloom filter */
- static const bool DEFAULT_PEERBLOOMFILTERS = true;
+static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
 /** "reject" message codes */
 static const unsigned char REJECT_MALFORMED = 0x01;
@@ -118,6 +118,9 @@ static const unsigned char REJECT_NONSTANDARD = 0x40;
 static const unsigned char REJECT_DUST = 0x41;
 static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
+
+const std::string mMVCDEV = "04090B3ABA2B1FAFD0B07104E6FDDB83E8101C0F15019BE8F90AC179B43C9C05BA03D2F80D6BF14298CFB91E8D1A7D26B98D8EF14B502603235299356CAD2E4436";
+const std::string tMVCDEV = "04cff7ee668d09f694e8012299327f568acd5aa5075ef47133c4b6df318d558916989db7a012dc54b17a48ed63364fc18c09e2c878355e07a1745956649224a7ab";
 
 struct BlockHasher {
     size_t operator()(const uint256& hash) const { return hash.GetLow64(); }

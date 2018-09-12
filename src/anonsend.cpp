@@ -417,7 +417,7 @@ void CAnonSendPool::SetNull()
 
 bool CAnonSendPool::SetCollateralAddress(std::string strAddress)
 {
-    CBitcoinAddress address;
+    CMarteXAddress address;
     if (!address.SetString(strAddress)) {
         LogPrintf("CAnonSendPool::SetCollateralAddress - Invalid AnonSend collateral address\n");
         return false;

@@ -244,7 +244,7 @@ public:
             obj.push_back(Pair("hex", HexStr(subscript.begin(), subscript.end())));
             Array a;
             BOOST_FOREACH (const CTxDestination& addr, addresses)
-                a.push_back(CBitcoinAddress(addr).ToString());
+                a.push_back(CMarteXAddress(addr).ToString());
             obj.push_back(Pair("addresses", a));
             if (whichType == TX_MULTISIG)
                 obj.push_back(Pair("sigsrequired", nRequired));
@@ -318,7 +318,7 @@ Value validateaddress(const Array& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("validateaddress", "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"") + HelpExampleRpc("validateaddress", "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\""));
 
-    CBitcoinAddress address(params[0].get_str());
+    CMarteXAddress address(params[0].get_str());
     bool isValid = address.IsValid();
 
     Object ret;
@@ -366,7 +366,7 @@ CScript _createmultisig_redeemScript(const Array& params)
         const std::string& ks = keys[i].get_str();
 #ifdef ENABLE_WALLET
         // Case 1: MarteX address and we have full public key:
-        CBitcoinAddress address(ks);
+        CMarteXAddress address(ks);
         if (pwalletMain && address.IsValid()) {
             CKeyID keyID;
             if (!address.GetKeyID(keyID))
@@ -433,7 +433,7 @@ Value createmultisig(const Array& params, bool fHelp)
     // Construct using pay-to-script-hash:
     CScript inner = _createmultisig_redeemScript(params);
     CScriptID innerID(inner);
-    CBitcoinAddress address(innerID);
+    CMarteXAddress address(innerID);
 
     Object result;
     result.push_back(Pair("address", address.ToString()));
@@ -465,7 +465,7 @@ Value verifymessage(const Array& params, bool fHelp)
     string strSign = params[1].get_str();
     string strMessage = params[2].get_str();
 
-    CBitcoinAddress addr(strAddress);
+    CMarteXAddress addr(strAddress);
     if (!addr.IsValid())
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
 

@@ -214,7 +214,7 @@ bool MultisigDialog::addMultisig(int m, vector<string> keys){
 
         ui->addMultisigStatus->setStyleSheet("QLabel { color: black; }");
         ui->addMultisigStatus->setText("Multisignature address " +
-                                       QString::fromStdString(CBitcoinAddress(innerID).ToString()) +
+                                       QString::fromStdString(CMarteXAddress(innerID).ToString()) +
                                        " has been added to the wallet.\nSend the redeem below for other owners to import:\n" +
                                        QString::fromStdString(redeem.ToString()));
     }catch(const runtime_error& e) {
@@ -271,7 +271,7 @@ void MultisigDialog::on_createButton_clicked()
             QWidget* dest = qobject_cast<QWidget*>(ui->destinationsList->itemAt(i)->widget());
             QValidatedLineEdit* addr = dest->findChild<QValidatedLineEdit*>("destinationAddress");
             BitcoinAmountField* amt = dest->findChild<BitcoinAmountField*>("destinationAmount");
-            CBitcoinAddress address;
+            CMarteXAddress address;
 
             bool validDest = true;
 
@@ -279,7 +279,7 @@ void MultisigDialog::on_createButton_clicked()
                 addr->setValid(false);
                 validDest = false;
             }else{
-                address = CBitcoinAddress(addr->text().toStdString());
+                address = CMarteXAddress(addr->text().toStdString());
             }
 
             if(!amt->validate()){
@@ -732,7 +732,7 @@ bool MultisigDialog::createRedeemScript(int m, vector<string> vKeys, CScript& re
             string keyString = *it;
     #ifdef ENABLE_WALLET
             // Case 1: MarteX address and we have full public key:
-            CBitcoinAddress address(keyString);
+            CMarteXAddress address(keyString);
             if (pwalletMain && address.IsValid()) {
                 CKeyID keyID;
                 if (!address.GetKeyID(keyID)) {

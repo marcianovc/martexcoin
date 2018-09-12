@@ -22,7 +22,7 @@ void budgetToJSON(CBudgetProposal* pbudgetProposal, Object& bObj)
 {
     CTxDestination address1;
     ExtractDestination(pbudgetProposal->GetPayee(), address1);
-    CBitcoinAddress address2(address1);
+    CMarteXAddress address2(address1);
 
     bObj.push_back(Pair("Name", pbudgetProposal->GetName()));
     bObj.push_back(Pair("URL", pbudgetProposal->GetURL()));
@@ -185,7 +185,7 @@ Value preparebudget(const Array& params, bool fHelp)
     if (nBlockEnd < pindexPrev->nHeight)
         throw runtime_error("Invalid ending block, starting block + (payment_cycle*payments) must be more than current height.");
 
-    CBitcoinAddress address(params[4].get_str());
+    CMarteXAddress address(params[4].get_str());
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
 
@@ -279,7 +279,7 @@ Value submitbudget(const Array& params, bool fHelp)
     if (nBlockEnd < pindexPrev->nHeight)
         throw runtime_error("Invalid ending block, starting block + (payment_cycle*payments) must be more than current height.");
 
-    CBitcoinAddress address(params[4].get_str());
+    CMarteXAddress address(params[4].get_str());
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
 
@@ -689,7 +689,7 @@ Value getbudgetprojection(const Array& params, bool fHelp)
 
         CTxDestination address1;
         ExtractDestination(pbudgetProposal->GetPayee(), address1);
-        CBitcoinAddress address2(address1);
+        CMarteXAddress address2(address1);
 
         Object bObj;
         budgetToJSON(pbudgetProposal, bObj);

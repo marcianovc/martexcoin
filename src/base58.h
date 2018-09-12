@@ -106,7 +106,7 @@ public:
  * Script-hash-addresses have version 5 (or 196 testnet).
  * The data vector contains RIPEMD160(SHA256(cscript)), where cscript is the serialized redemption script.
  */
-class CBitcoinAddress : public CBase58Data
+class CMarteXAddress : public CBase58Data
 {
 public:
     bool Set(const CKeyID& id);
@@ -115,10 +115,10 @@ public:
     bool IsValid() const;
     bool IsValid(const CChainParams& params) const;
 
-    CBitcoinAddress() {}
-    CBitcoinAddress(const CTxDestination& dest) { Set(dest); }
-    CBitcoinAddress(const std::string& strAddress) { SetString(strAddress); }
-    CBitcoinAddress(const char* pszAddress) { SetString(pszAddress); }
+    CMarteXAddress() {}
+    CMarteXAddress(const CTxDestination& dest) { Set(dest); }
+    CMarteXAddress(const std::string& strAddress) { SetString(strAddress); }
+    CMarteXAddress(const char* pszAddress) { SetString(pszAddress); }
 
     CTxDestination Get() const;
     bool GetKeyID(CKeyID& keyID) const;

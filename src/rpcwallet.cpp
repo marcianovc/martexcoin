@@ -109,11 +109,11 @@ Value getnewaddress(const Array& params, bool fHelp)
 
     pwalletMain->SetAddressBook(keyID, strAccount, "receive");
 
-    return CBitcoinAddress(keyID).ToString();
+    return CMarteXAddress(keyID).ToString();
 }
 
 
-CBitcoinAddress GetAccountAddress(string strAccount, bool bForceNew = false)
+CMarteXAddress GetAccountAddress(string strAccount, bool bForceNew = false)
 {
     CWalletDB walletdb(pwalletMain->strWalletFile);
 
@@ -144,7 +144,7 @@ CBitcoinAddress GetAccountAddress(string strAccount, bool bForceNew = false)
         walletdb.WriteAccount(strAccount, account);
     }
 
-    return CBitcoinAddress(account.vchPubKey.GetID());
+    return CMarteXAddress(account.vchPubKey.GetID());
 }
 
 Value getaccountaddress(const Array& params, bool fHelp)
@@ -195,7 +195,7 @@ Value getrawchangeaddress(const Array& params, bool fHelp)
 
     CKeyID keyID = vchPubKey.GetID();
 
-    return CBitcoinAddress(keyID).ToString();
+    return CMarteXAddress(keyID).ToString();
 }
 
 
@@ -211,7 +211,7 @@ Value setaccount(const Array& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("setaccount", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\" \"tabby\"") + HelpExampleRpc("setaccount", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\", \"tabby\""));
 
-    CBitcoinAddress address(params[0].get_str());
+    CMarteXAddress address(params[0].get_str());
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
 
@@ -249,7 +249,7 @@ Value getaccount(const Array& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("getaccount", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\"") + HelpExampleRpc("getaccount", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\""));
 
-    CBitcoinAddress address(params[0].get_str());
+    CMarteXAddress address(params[0].get_str());
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
 
@@ -281,8 +281,8 @@ Value getaddressesbyaccount(const Array& params, bool fHelp)
 
     // Find all addresses that have the given account
     Array ret;
-    BOOST_FOREACH (const PAIRTYPE(CBitcoinAddress, CAddressBookData) & item, pwalletMain->mapAddressBook) {
-        const CBitcoinAddress& address = item.first;
+    BOOST_FOREACH (const PAIRTYPE(CMarteXAddress, CAddressBookData) & item, pwalletMain->mapAddressBook) {
+        const CMarteXAddress& address = item.first;
         const string& strName = item.second.name;
         if (strName == strAccount)
             ret.push_back(address.ToString());
@@ -342,7 +342,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("sendtoaddress", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\" 0.1") + HelpExampleCli("sendtoaddress", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\" 0.1 \"donation\" \"seans outpost\"") + HelpExampleRpc("sendtoaddress", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\", 0.1, \"donation\", \"seans outpost\""));
 
-    CBitcoinAddress address(params[0].get_str());
+    CMarteXAddress address(params[0].get_str());
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
 
@@ -383,7 +383,7 @@ Value sendtoaddressix(const Array& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("sendtoaddressix", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\" 0.1") + HelpExampleCli("sendtoaddressix", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\" 0.1 \"donation\" \"seans outpost\"") + HelpExampleRpc("sendtoaddressix", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\", 0.1, \"donation\", \"seans outpost\""));
 
-    CBitcoinAddress address(params[0].get_str());
+    CMarteXAddress address(params[0].get_str());
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
 
@@ -432,12 +432,12 @@ Value listaddressgroupings(const Array& params, bool fHelp)
         Array jsonGrouping;
         BOOST_FOREACH (CTxDestination address, grouping) {
             Array addressInfo;
-            addressInfo.push_back(CBitcoinAddress(address).ToString());
+            addressInfo.push_back(CMarteXAddress(address).ToString());
             addressInfo.push_back(ValueFromAmount(balances[address]));
             {
                 LOCK(pwalletMain->cs_wallet);
-                if (pwalletMain->mapAddressBook.find(CBitcoinAddress(address).Get()) != pwalletMain->mapAddressBook.end())
-                    addressInfo.push_back(pwalletMain->mapAddressBook.find(CBitcoinAddress(address).Get())->second.name);
+                if (pwalletMain->mapAddressBook.find(CMarteXAddress(address).Get()) != pwalletMain->mapAddressBook.end())
+                    addressInfo.push_back(pwalletMain->mapAddressBook.find(CMarteXAddress(address).Get())->second.name);
             }
             jsonGrouping.push_back(addressInfo);
         }
@@ -470,7 +470,7 @@ Value signmessage(const Array& params, bool fHelp)
     string strAddress = params[0].get_str();
     string strMessage = params[1].get_str();
 
-    CBitcoinAddress addr(strAddress);
+    CMarteXAddress addr(strAddress);
     if (!addr.IsValid())
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
 
@@ -512,7 +512,7 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
             "\nAs a json rpc call\n" + HelpExampleRpc("getreceivedbyaddress", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\", 6"));
 
     // martex address
-    CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
+    CMarteXAddress address = CMarteXAddress(params[0].get_str());
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
     CScript scriptPubKey = GetScriptForDestination(address.Get());
@@ -784,7 +784,7 @@ Value sendfrom(const Array& params, bool fHelp)
             "\nAs a json rpc call\n" + HelpExampleRpc("sendfrom", "\"tabby\", \"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\", 0.01, 6, \"donation\", \"seans outpost\""));
 
     string strAccount = AccountFromValue(params[0]);
-    CBitcoinAddress address(params[1].get_str());
+    CMarteXAddress address(params[1].get_str());
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
     CAmount nAmount = AmountFromValue(params[2]);
@@ -848,12 +848,12 @@ Value sendmany(const Array& params, bool fHelp)
     if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
         wtx.mapValue["comment"] = params[3].get_str();
 
-    set<CBitcoinAddress> setAddress;
+    set<CMarteXAddress> setAddress;
     vector<pair<CScript, CAmount> > vecSend;
 
     CAmount totalAmount = 0;
     BOOST_FOREACH (const Pair& s, sendTo) {
-        CBitcoinAddress address(s.name_);
+        CMarteXAddress address(s.name_);
         if (!address.IsValid())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Invalid MarteX address: ") + s.name_);
 
@@ -928,7 +928,7 @@ Value addmultisigaddress(const Array& params, bool fHelp)
     pwalletMain->AddCScript(inner);
 
     pwalletMain->SetAddressBook(innerID, strAccount, "send");
-    return CBitcoinAddress(innerID).ToString();
+    return CMarteXAddress(innerID).ToString();
 }
 
 
@@ -965,7 +965,7 @@ Value ListReceived(const Array& params, bool fByAccounts)
             filter = filter | ISMINE_WATCH_ONLY;
 
     // Tally
-    map<CBitcoinAddress, tallyitem> mapTally;
+    map<CMarteXAddress, tallyitem> mapTally;
     for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) {
         const CWalletTx& wtx = (*it).second;
 
@@ -999,10 +999,10 @@ Value ListReceived(const Array& params, bool fByAccounts)
     // Reply
     Array ret;
     map<string, tallyitem> mapAccountTally;
-    BOOST_FOREACH (const PAIRTYPE(CBitcoinAddress, CAddressBookData) & item, pwalletMain->mapAddressBook) {
-        const CBitcoinAddress& address = item.first;
+    BOOST_FOREACH (const PAIRTYPE(CMarteXAddress, CAddressBookData) & item, pwalletMain->mapAddressBook) {
+        const CMarteXAddress& address = item.first;
         const string& strAccount = item.second.name;
-        map<CBitcoinAddress, tallyitem>::iterator it = mapTally.find(address);
+        map<CMarteXAddress, tallyitem>::iterator it = mapTally.find(address);
         if (it == mapTally.end() && !fIncludeEmpty)
             continue;
 
@@ -1123,7 +1123,7 @@ Value listreceivedbyaccount(const Array& params, bool fHelp)
 
 static void MaybePushAddress(Object& entry, const CTxDestination& dest)
 {
-    CBitcoinAddress addr;
+    CMarteXAddress addr;
     if (addr.Set(dest))
         entry.push_back(Pair("address", addr.ToString()));
 }
@@ -2100,7 +2100,7 @@ Array printAddresses()
     BOOST_FOREACH (const COutput& out, vCoins) {
         CTxDestination utxoAddress;
         ExtractDestination(out.tx->vout[out.i].scriptPubKey, utxoAddress);
-        std::string strAdd = CBitcoinAddress(utxoAddress).ToString();
+        std::string strAdd = CMarteXAddress(utxoAddress).ToString();
 
         if (mapAddresses.find(strAdd) == mapAddresses.end()) //if strAdd is not already part of the map
             mapAddresses[strAdd] = (double)out.tx->vout[out.i].nValue / (double)COIN;
@@ -2163,7 +2163,7 @@ Value multisend(const Array& params, bool fHelp)
             if (pwalletMain->vMultiSend.size() < 1)
                 throw JSONRPCError(RPC_INVALID_REQUEST, "Unable to activate MultiSend, check MultiSend vector");
 
-            if (CBitcoinAddress(pwalletMain->vMultiSend[0].first).IsValid()) {
+            if (CMarteXAddress(pwalletMain->vMultiSend[0].first).IsValid()) {
                 pwalletMain->fMultiSendStake = true;
                 if (!walletdb.WriteMSettings(true, pwalletMain->fMultiSendMasternodeReward, pwalletMain->nLastMultiSendHeight)) {
                     Object obj;
@@ -2181,7 +2181,7 @@ Value multisend(const Array& params, bool fHelp)
             if (pwalletMain->vMultiSend.size() < 1)
                 throw JSONRPCError(RPC_INVALID_REQUEST, "Unable to activate MultiSend, check MultiSend vector");
 
-            if (CBitcoinAddress(pwalletMain->vMultiSend[0].first).IsValid()) {
+            if (CMarteXAddress(pwalletMain->vMultiSend[0].first).IsValid()) {
                 pwalletMain->fMultiSendMasternodeReward = true;
 
                 if (!walletdb.WriteMSettings(pwalletMain->fMultiSendStake, true, pwalletMain->nLastMultiSendHeight)) {
@@ -2224,7 +2224,7 @@ Value multisend(const Array& params, bool fHelp)
     }
     if (params.size() == 2 && params[0].get_str() == "disable") {
         std::string disAddress = params[1].get_str();
-        if (!CBitcoinAddress(disAddress).IsValid())
+        if (!CMarteXAddress(disAddress).IsValid())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address you want to disable is not valid");
         else {
             pwalletMain->vDisabledAddresses.push_back(disAddress);
@@ -2265,7 +2265,7 @@ Value multisend(const Array& params, bool fHelp)
 
     //if the user is entering a new MultiSend item
     string strAddress = params[0].get_str();
-    CBitcoinAddress address(strAddress);
+    CMarteXAddress address(strAddress);
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MARTEX address");
     if (boost::lexical_cast<int>(params[1].get_str()) < 0)
@@ -2463,11 +2463,11 @@ Value spendzerocoin(const Array& params, bool fHelp)
     bool fMinimizeChange = params[2].get_bool();    // Minimize change
     int nSecurityLevel = params[3].get_int();       // Security level
 
-    CBitcoinAddress address = CBitcoinAddress(); // Optional sending address. Dummy initialization here.
+    CMarteXAddress address = CMarteXAddress(); // Optional sending address. Dummy initialization here.
     if (params.size() == 5) {
         // Destination address was supplied as params[4]. Optional parameters MUST be at the end
         // to avoid type confusion from the JSON interpreter
-        address = CBitcoinAddress(params[4].get_str());
+        address = CMarteXAddress(params[4].get_str());
         if(!address.IsValid())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MarteX address");
     }
@@ -2510,7 +2510,7 @@ Value spendzerocoin(const Array& params, bool fHelp)
         if(txout.scriptPubKey.IsZerocoinMint())
             out.push_back(Pair("address", "zerocoinmint"));
         else if(ExtractDestination(txout.scriptPubKey, dest))
-            out.push_back(Pair("address", CBitcoinAddress(dest).ToString()));
+            out.push_back(Pair("address", CMarteXAddress(dest).ToString()));
         vout.push_back(out);
     }
 

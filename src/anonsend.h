@@ -17,7 +17,7 @@ class CTxIn;
 class CAnonSendPool;
 class CAnonSendSigner;
 class CMasterNodeVote;
-class CBitcoinAddress;
+class CMarteXAddress;
 class CAnonSendQueue;
 class CAnonSendBroadcastTx;
 class CActiveMasternode;

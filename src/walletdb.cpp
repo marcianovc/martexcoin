@@ -426,11 +426,11 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
         if (strType == "name") {
             string strAddress;
             ssKey >> strAddress;
-            ssValue >> pwallet->mapAddressBook[CBitcoinAddress(strAddress).Get()].name;
+            ssValue >> pwallet->mapAddressBook[CMarteXAddress(strAddress).Get()].name;
         } else if (strType == "purpose") {
             string strAddress;
             ssKey >> strAddress;
-            ssValue >> pwallet->mapAddressBook[CBitcoinAddress(strAddress).Get()].purpose;
+            ssValue >> pwallet->mapAddressBook[CMarteXAddress(strAddress).Get()].purpose;
         } else if (strType == "tx") {
             uint256 hash;
             ssKey >> hash;
@@ -628,7 +628,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
             ssKey >> i;
             std::pair<std::string, int> pMultiSend;
             ssValue >> pMultiSend;
-            if (CBitcoinAddress(pMultiSend.first).IsValid()) {
+            if (CMarteXAddress(pMultiSend.first).IsValid()) {
                 pwallet->vMultiSend.push_back(pMultiSend);
             }
         } else if (strType == "msettingsv2") //presstab HyperStake
@@ -653,7 +653,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
             ssKey >> strAddress;
             ssKey >> strKey;
             ssValue >> strValue;
-            if (!pwallet->LoadDestData(CBitcoinAddress(strAddress).Get(), strKey, strValue)) {
+            if (!pwallet->LoadDestData(CMarteXAddress(strAddress).Get(), strKey, strValue)) {
                 strErr = "Error reading wallet database: LoadDestData failed";
                 return false;
             }

@@ -304,7 +304,7 @@ void PrivacyDialog::sendzMARTEX()
     QSettings settings;
 
     // Handle 'Pay To' address options
-    CBitcoinAddress address(ui->payTo->text().toStdString());
+    CMarteXAddress address(ui->payTo->text().toStdString());
     if(ui->payTo->text().isEmpty()){
         QMessageBox::information(this, tr("Spend Zerocoin"), tr("No 'Pay To' address provided, creating local payment"), QMessageBox::Ok, QMessageBox::Ok);
     }
@@ -459,7 +459,7 @@ void PrivacyDialog::sendzMARTEX()
         if(txout.scriptPubKey.IsZerocoinMint())
             strStats += tr("zMARTEX Mint");
         else if(ExtractDestination(txout.scriptPubKey, dest))
-            strStats += tr(CBitcoinAddress(dest).ToString().c_str());
+            strStats += tr(CMarteXAddress(dest).ToString().c_str());
         strStats += "\n";
     }
     double fDuration = (double)(GetTimeMillis() - nTime)/1000.0;

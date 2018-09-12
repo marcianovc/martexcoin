@@ -799,7 +799,7 @@ Value getinvalid (const Array& params, bool fHelp)
     CAmount nUnspent = 0;
     CAmount nMint = 0;
     CAmount nMixedValid = 0;
-    map<CBitcoinAddress, CAmount> mapBanAddress;
+    map<CMarteXAddress, CAmount> mapBanAddress;
     map<COutPoint, int> mapMixedValid;
 
     Array ret;
@@ -860,7 +860,7 @@ Value getinvalid (const Array& params, bool fHelp)
             if (!ExtractDestination(scriptPubKey, dest)) {
                 continue;
             }
-            CBitcoinAddress address(dest);
+            CMarteXAddress address(dest);
             mapBanAddress[address] += nValue;
             nUnspent += nValue;
         }

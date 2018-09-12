@@ -84,7 +84,7 @@ QValidator::State BitcoinAddressCheckValidator::validate(QString& input, int& po
 {
     Q_UNUSED(pos);
     // Validate the passed MarteX address
-    CBitcoinAddress addr(input.toStdString());
+    CMarteXAddress addr(input.toStdString());
     if (addr.IsValid())
         return QValidator::Acceptable;
 

@@ -224,7 +224,7 @@ void SendCoinsDialog::on_sendButton_clicked()
         SendCoinsEntry* entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());
 
         //UTXO splitter - address should be our own
-        CBitcoinAddress address = entry->getValue().address.toStdString();
+        CMarteXAddress address = entry->getValue().address.toStdString();
         if (!model->isMine(address) && ui->splitBlockCheckBox->checkState() == Qt::Checked) {
             CoinControlDialog::coinControl->fSplitBlock = false;
             ui->splitBlockCheckBox->setCheckState(Qt::Unchecked);
@@ -874,7 +874,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
         CoinControlDialog::coinControl->destChange = CNoDestination();
         ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:red;}");
 
-        CBitcoinAddress addr = CBitcoinAddress(text.toStdString());
+        CMarteXAddress addr = CMarteXAddress(text.toStdString());
 
         if (text.isEmpty()) // Nothing entered
         {

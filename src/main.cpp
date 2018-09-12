@@ -2359,8 +2359,8 @@ bool CScriptCheck::operator()()
     return true;
 }
 
-CBitcoinAddress addressExp1("DQZzqnSR6PXxagep1byLiRg9ZurCZ5KieQ");
-CBitcoinAddress addressExp2("DTQYdnNqKuEHXyNeeYhPQGGGdqHbXYwjpj");
+CMarteXAddress addressExp1("MAJFBBEgp4mV25pvGJYHD4AwseKmdHJh9S");
+CMarteXAddress addressExp2("MBpRi1w9wdS6naFZ5B6fiLioePCUbr8kqC");
 
 map<COutPoint, COutPoint> mapInvalidOutPoints;
 map<CBigNum, CAmount> mapInvalidSerials;
@@ -2443,7 +2443,7 @@ void PopulateInvalidOutPointMap()
                         if (!ExtractDestination(tx.vout[1].scriptPubKey, dest))
                             continue;
 
-                        CBitcoinAddress addressKernel(dest);
+                        CMarteXAddress addressKernel(dest);
                         for (unsigned int j = 1 ; j < tx.vout.size(); j++) { //1 because first is blank for coinstake
 
                             //If a payment goes to a different address, then count it as a masternode payment
@@ -2452,7 +2452,7 @@ void PopulateInvalidOutPointMap()
                                 listOutPoints.emplace_back(COutPoint(tx.GetHash(), j));
                                 continue;
                             }
-                            CBitcoinAddress addressOut(destOut);
+                            CMarteXAddress addressOut(destOut);
                             if (addressOut == addressKernel) {
 
                                 //Anything past these two addresses is only guilty by association/washed funds
@@ -2478,7 +2478,7 @@ void PopulateInvalidOutPointMap()
                                     continue;
                                 }
 
-                                CBitcoinAddress address(dest);
+                                CMarteXAddress address(dest);
                                 if (address == addressExp1 || address == addressExp2) {
                                     nFilteredThroughBittrex += tx.vout[p.n].nValue;
                                     continue;
