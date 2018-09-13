@@ -1516,7 +1516,7 @@ bool CheckTransaction(const CTransaction& tx, bool fZerocoinActive, bool fReject
     }
 
     if (tx.IsCoinBase()) {
-        if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 300)
+        if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 150)
             return state.DoS(100, error("CheckTransaction() : coinbase script size=%d", tx.vin[0].scriptSig.size()),
                 REJECT_INVALID, "bad-cb-length");
     } else if (fZerocoinActive && tx.IsZerocoinSpend()) {
@@ -2869,6 +2869,22 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     if (block.GetHash() == Params().HashGenesisBlock()) {
         view.SetBestBlock(pindex->GetBlockHash());
         return true;
+    }
+
+    if (block.IsProofOfStake()) {
+        if (Params().NetworkID() == CBaseChainParams::TESTNET){
+            if (pindex->nHeight <= 73)
+                return state.DoS(100, error("ConnectBlock() : PoS period not active"),
+                    REJECT_INVALID, "PoS-early");
+
+            if (pindex->nHeight != 75 && Params().NetworkID() == CBaseChainParams::TESTNET)
+                return state.DoS(100, error("ConnectBlock() : PoS period not active"),
+                    REJECT_INVALID, "PoS-early");
+        }
+
+        if (pindex->nHeight <= 454 && Params().NetworkID() != CBaseChainParams::TESTNET && Params().NetworkID() != CBaseChainParams::REGTEST)
+            return state.DoS(100, error("ConnectBlock() : PoS period not active"),
+                REJECT_INVALID, "PoS-early");
     }
 
     if (pindex->nHeight <= Params().LAST_POW_BLOCK() && block.IsProofOfStake())
