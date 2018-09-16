@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2015-2017 The MARTEX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -24,31 +24,31 @@
 using namespace std;
 using namespace boost;
 
-// The main object for accessing AnonSend
-CAnonSendPool AnonSendPool;
+// The main object for accessing Anonsend
+CAnonsendPool AnonSendPool;
 // A helper object for signing messages from Masternodes
 CAnonSendSigner AnonSendSigner;
-// The current AnonSends in progress on the network
-std::vector<CAnonSendQueue> vecAnonSendQueue;
+// The current Anonsends in progress on the network
+std::vector<CAnonsendQueue> vecAnonsendQueue;
 // Keep track of the used Masternodes
 std::vector<CTxIn> vecMasternodesUsed;
 // Keep track of the scanning errors I've seen
-map<uint256, CAnonSendBroadcastTx> mapAnonSendBroadcastTxes;
+map<uint256, CAnonsendBroadcastTx> mapAnonsendBroadcastTxes;
 // Keep track of the active Masternode
 CActiveMasternode activeMasternode;
 
-/* *** BEGIN ANONSEND MAGIC - MARTEX **********
+/* *** BEGIN ANONSEND MAGIC - MXT **********
     Copyright (c) 2014-2015, Dash Developers
         eduffield - evan@dashpay.io
         udjinm6   - udjinm6@dashpay.io
 */
 
-void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
+void CAnonsendPool::ProcessMessageAnonsend(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
-    if (fLiteMode) return; //disable all AnonSend/Masternode related functionality
+    if (fLiteMode) return; //disable all Anonsend/Masternode related functionality
     if (!masternodeSync.IsBlockchainSynced()) return;
 
-    if (strCommand == "dsa") { //AnonSend Accept Into Pool
+    if (strCommand == "dsa") { //Anonsend Accept Into Pool
 
         int errorID;
 
@@ -99,7 +99,7 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
             return;
         }
 
-    } else if (strCommand == "dsq") { //AnonSend Queue
+    } else if (strCommand == "dsq") { //Anonsend Queue
         TRY_LOCK(cs_anonsend, lockRecv);
         if (!lockRecv) return;
 
@@ -107,7 +107,7 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
             return;
         }
 
-        CAnonSendQueue dsq;
+        CAnonsendQueue dsq;
         vRecv >> dsq;
 
         CService addr;
@@ -128,11 +128,11 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
             }
 
             if (state == POOL_STATUS_QUEUE) {
-                LogPrint("anonsend", "AnonSend queue is ready - %s\n", addr.ToString());
-                PrepareAnonSendDenominate();
+                LogPrint("anonsend", "Anonsend queue is ready - %s\n", addr.ToString());
+                PrepareAnonsendDenominate();
             }
         } else {
-            BOOST_FOREACH (CAnonSendQueue q, vecAnonSendQueue) {
+            BOOST_FOREACH (CAnonsendQueue q, vecAnonsendQueue) {
                 if (q.vin == dsq.vin) return;
             }
 
@@ -147,8 +147,8 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
             pmn->nLastDsq = mnodeman.nDsqCount;
             pmn->allowFreeTx = true;
 
-            LogPrint("anonsend", "dsq - new AnonSend queue object - %s\n", addr.ToString());
-            vecAnonSendQueue.push_back(dsq);
+            LogPrint("anonsend", "dsq - new Anonsend queue object - %s\n", addr.ToString());
+            vecAnonsendQueue.push_back(dsq);
             dsq.Relay();
             dsq.time = GetTime();
         }
@@ -238,7 +238,7 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
             }
 
             if (nValueIn > ANONSEND_POOL_MAX) {
-                LogPrintf("dsi -- more than AnonSend pool max! %s\n", tx.ToString());
+                LogPrintf("dsi -- more than Anonsend pool max! %s\n", tx.ToString());
                 errorID = ERR_MAXIMUM;
                 pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, errorID);
                 return;
@@ -278,7 +278,7 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
             pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, errorID);
         }
 
-    } else if (strCommand == "dssu") { //AnonSend status update
+    } else if (strCommand == "dssu") { //Anonsend status update
         if (pfrom->nVersion < ActiveProtocol()) {
             return;
         }
@@ -299,13 +299,13 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
         LogPrint("anonsend", "dssu - state: %i entriesCount: %i accepted: %i error: %s \n", state, entriesCount, accepted, GetMessageByID(errorID));
 
         if ((accepted != 1 && accepted != 0) && sessionID != sessionIDMessage) {
-            LogPrintf("dssu - message doesn't match current AnonSend session %d %d\n", sessionID, sessionIDMessage);
+            LogPrintf("dssu - message doesn't match current Anonsend session %d %d\n", sessionID, sessionIDMessage);
             return;
         }
 
         StatusUpdate(state, entriesCount, accepted, errorID, sessionIDMessage);
 
-    } else if (strCommand == "dss") { //AnonSend Sign Final Tx
+    } else if (strCommand == "dss") { //Anonsend Sign Final Tx
 
         if (pfrom->nVersion < ActiveProtocol()) {
             return;
@@ -327,7 +327,7 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
             AnonSendPool.Check();
             RelayStatus(AnonSendPool.sessionID, AnonSendPool.GetState(), AnonSendPool.GetEntriesCount(), MASTERNODE_RESET);
         }
-    } else if (strCommand == "dsf") { //AnonSend Final tx
+    } else if (strCommand == "dsf") { //Anonsend Final tx
         if (pfrom->nVersion < ActiveProtocol()) {
             return;
         }
@@ -343,14 +343,14 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
         vRecv >> sessionIDMessage >> txNew;
 
         if (sessionID != sessionIDMessage) {
-            LogPrint("anonsend", "dsf - message doesn't match current AnonSend session %d %d\n", sessionID, sessionIDMessage);
+            LogPrint("anonsend", "dsf - message doesn't match current Anonsend session %d %d\n", sessionID, sessionIDMessage);
             return;
         }
 
         //check to see if input is spent already? (and probably not confirmed)
         SignFinalTransaction(txNew, pfrom);
 
-    } else if (strCommand == "dsc") { //AnonSend Complete
+    } else if (strCommand == "dsc") { //Anonsend Complete
 
         if (pfrom->nVersion < ActiveProtocol()) {
             return;
@@ -368,7 +368,7 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
         vRecv >> sessionIDMessage >> error >> errorID;
 
         if (sessionID != sessionIDMessage) {
-            LogPrint("anonsend", "dsc - message doesn't match current AnonSend session %d %d\n", AnonSendPool.sessionID, sessionIDMessage);
+            LogPrint("anonsend", "dsc - message doesn't match current Anonsend session %d %d\n", AnonSendPool.sessionID, sessionIDMessage);
             return;
         }
 
@@ -378,7 +378,7 @@ void CAnonSendPool::ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand
 
 int randomizeList(int i) { return std::rand() % i; }
 
-void CAnonSendPool::Reset()
+void CAnonsendPool::Reset()
 {
     cachedLastSuccess = 0;
     lastNewBlock = 0;
@@ -388,7 +388,7 @@ void CAnonSendPool::Reset()
     SetNull();
 }
 
-void CAnonSendPool::SetNull()
+void CAnonsendPool::SetNull()
 {
     // MN side
     sessionUsers = 0;
@@ -415,11 +415,11 @@ void CAnonSendPool::SetNull()
     std::srand(seed);
 }
 
-bool CAnonSendPool::SetCollateralAddress(std::string strAddress)
+bool CAnonsendPool::SetCollateralAddress(std::string strAddress)
 {
-    CMarteXAddress address;
+    CBitcoinAddress address;
     if (!address.SetString(strAddress)) {
-        LogPrintf("CAnonSendPool::SetCollateralAddress - Invalid AnonSend collateral address\n");
+        LogPrintf("CAnonsendPool::SetCollateralAddress - Invalid Anonsend collateral address\n");
         return false;
     }
     collateralPubKey = GetScriptForDestination(address.Get());
@@ -427,9 +427,9 @@ bool CAnonSendPool::SetCollateralAddress(std::string strAddress)
 }
 
 //
-// Unlock coins after AnonSend fails or succeeds
+// Unlock coins after Anonsend fails or succeeds
 //
-void CAnonSendPool::UnlockCoins()
+void CAnonsendPool::UnlockCoins()
 {
     while (true) {
         TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
@@ -445,7 +445,7 @@ void CAnonSendPool::UnlockCoins()
     lockedCoins.clear();
 }
 
-std::string CAnonSendPool::GetStatus()
+std::string CAnonsendPool::GetStatus()
 {
     static int showingAnonSendMessage = 0;
     showingAnonSendMessage += 10;
@@ -456,7 +456,7 @@ std::string CAnonSendPool::GetStatus()
     }
     switch (state) {
     case POOL_STATUS_IDLE:
-        return _("AnonSend is idle.");
+        return _("Anonsend is idle.");
     case POOL_STATUS_ACCEPTING_ENTRIES:
         if (entriesCount == 0) {
             showingAnonSendMessage = 0;
@@ -466,7 +466,7 @@ std::string CAnonSendPool::GetStatus()
                 lastEntryAccepted = 0;
                 showingAnonSendMessage = 0;
             }
-            return _("AnonSend request complete:") + " " + _("Your transaction was accepted into the pool!");
+            return _("Anonsend request complete:") + " " + _("Your transaction was accepted into the pool!");
         } else {
             std::string suffix = "";
             if (showingAnonSendMessage % 70 <= 40)
@@ -494,9 +494,9 @@ std::string CAnonSendPool::GetStatus()
     case POOL_STATUS_FINALIZE_TRANSACTION:
         return _("Finalizing transaction.");
     case POOL_STATUS_ERROR:
-        return _("AnonSend request incomplete:") + " " + lastMessage + " " + _("Will retry...");
+        return _("Anonsend request incomplete:") + " " + lastMessage + " " + _("Will retry...");
     case POOL_STATUS_SUCCESS:
-        return _("AnonSend request complete:") + " " + lastMessage;
+        return _("Anonsend request complete:") + " " + lastMessage;
     case POOL_STATUS_QUEUE:
         if (showingAnonSendMessage % 70 <= 30)
             suffix = ".";
@@ -512,26 +512,26 @@ std::string CAnonSendPool::GetStatus()
 }
 
 //
-// Check the AnonSend progress and send client updates if a Masternode
+// Check the Anonsend progress and send client updates if a Masternode
 //
-void CAnonSendPool::Check()
+void CAnonsendPool::Check()
 {
-    if (fMasterNode) LogPrint("anonsend", "CAnonSendPool::Check() - entries count %lu\n", entries.size());
-    //printf("CAnonSendPool::Check() %d - %d - %d\n", state, anonTx.CountEntries(), GetTimeMillis()-lastTimeChanged);
+    if (fMasterNode) LogPrint("anonsend", "CAnonsendPool::Check() - entries count %lu\n", entries.size());
+    //printf("CAnonsendPool::Check() %d - %d - %d\n", state, anonTx.CountEntries(), GetTimeMillis()-lastTimeChanged);
 
     if (fMasterNode) {
-        LogPrint("anonsend", "CAnonSendPool::Check() - entries count %lu\n", entries.size());
+        LogPrint("anonsend", "CAnonsendPool::Check() - entries count %lu\n", entries.size());
 
         // If entries is full, then move on to the next phase
         if (state == POOL_STATUS_ACCEPTING_ENTRIES && (int)entries.size() >= GetMaxPoolTransactions()) {
-            LogPrint("anonsend", "CAnonSendPool::Check() -- TRYING TRANSACTION \n");
+            LogPrint("anonsend", "CAnonsendPool::Check() -- TRYING TRANSACTION \n");
             UpdateState(POOL_STATUS_FINALIZE_TRANSACTION);
         }
     }
 
     // create the finalized transaction for distribution to the clients
     if (state == POOL_STATUS_FINALIZE_TRANSACTION) {
-        LogPrint("anonsend", "CAnonSendPool::Check() -- FINALIZE TRANSACTIONS\n");
+        LogPrint("anonsend", "CAnonsendPool::Check() -- FINALIZE TRANSACTIONS\n");
         UpdateState(POOL_STATUS_SIGNING);
 
         if (fMasterNode) {
@@ -561,7 +561,7 @@ void CAnonSendPool::Check()
 
     // If we have all of the signatures, try to compile the transaction
     if (fMasterNode && state == POOL_STATUS_SIGNING && SignaturesComplete()) {
-        LogPrint("anonsend", "CAnonSendPool::Check() -- SIGNING\n");
+        LogPrint("anonsend", "CAnonsendPool::Check() -- SIGNING\n");
         UpdateState(POOL_STATUS_TRANSMISSION);
 
         CheckFinalTransaction();
@@ -569,14 +569,14 @@ void CAnonSendPool::Check()
 
     // reset if we're here for 10 seconds
     if ((state == POOL_STATUS_ERROR || state == POOL_STATUS_SUCCESS) && GetTimeMillis() - lastTimeChanged >= 10000) {
-        LogPrint("anonsend", "CAnonSendPool::Check() -- timeout, RESETTING\n");
+        LogPrint("anonsend", "CAnonsendPool::Check() -- timeout, RESETTING\n");
         UnlockCoins();
         SetNull();
         if (fMasterNode) RelayStatus(sessionID, GetState(), GetEntriesCount(), MASTERNODE_RESET);
     }
 }
 
-void CAnonSendPool::CheckFinalTransaction()
+void CAnonsendPool::CheckFinalTransaction()
 {
     if (!fMasterNode) return; // check and relay final tx only on masternode
 
@@ -588,7 +588,7 @@ void CAnonSendPool::CheckFinalTransaction()
 
         // See if the transaction is valid
         if (!txNew.AcceptToMemoryPool(false, true, true)) {
-            LogPrintf("CAnonSendPool::Check() - CommitTransaction : Error: Transaction not valid\n");
+            LogPrintf("CAnonsendPool::Check() - CommitTransaction : Error: Transaction not valid\n");
             SetNull();
 
             // not much we can do in this case
@@ -597,7 +597,7 @@ void CAnonSendPool::CheckFinalTransaction()
             return;
         }
 
-        LogPrintf("CAnonSendPool::Check() -- IS MASTER -- TRANSMITTING ANONSEND\n");
+        LogPrintf("CAnonsendPool::Check() -- IS MASTER -- TRANSMITTING ANONSEND\n");
 
         // sign a message
 
@@ -609,28 +609,28 @@ void CAnonSendPool::CheckFinalTransaction()
         CPubKey pubkey2;
 
         if (!AnonSendSigner.SetKey(strMasterNodePrivKey, strError, key2, pubkey2)) {
-            LogPrintf("CAnonSendPool::Check() - ERROR: Invalid Masternodeprivkey: '%s'\n", strError);
+            LogPrintf("CAnonsendPool::Check() - ERROR: Invalid Masternodeprivkey: '%s'\n", strError);
             return;
         }
 
         if (!AnonSendSigner.SignMessage(strMessage, strError, vchSig, key2)) {
-            LogPrintf("CAnonSendPool::Check() - Sign message failed\n");
+            LogPrintf("CAnonsendPool::Check() - Sign message failed\n");
             return;
         }
 
         if (!AnonSendSigner.VerifyMessage(pubkey2, vchSig, strMessage, strError)) {
-            LogPrintf("CAnonSendPool::Check() - Verify message failed\n");
+            LogPrintf("CAnonsendPool::Check() - Verify message failed\n");
             return;
         }
 
-        if (!mapAnonSendBroadcastTxes.count(txNew.GetHash())) {
-            CAnonSendBroadcastTx dstx;
+        if (!mapAnonsendBroadcastTxes.count(txNew.GetHash())) {
+            CAnonsendBroadcastTx dstx;
             dstx.tx = txNew;
             dstx.vin = activeMasternode.vin;
             dstx.vchSig = vchSig;
             dstx.sigTime = sigTime;
 
-            mapAnonSendBroadcastTxes.insert(make_pair(txNew.GetHash(), dstx));
+            mapAnonsendBroadcastTxes.insert(make_pair(txNew.GetHash(), dstx));
         }
 
         CInv inv(MSG_DSTX, txNew.GetHash());
@@ -643,7 +643,7 @@ void CAnonSendPool::CheckFinalTransaction()
         ChargeRandomFees();
 
         // Reset
-        LogPrint("anonsend", "CAnonSendPool::Check() -- COMPLETED -- RESETTING\n");
+        LogPrint("anonsend", "CAnonsendPool::Check() -- COMPLETED -- RESETTING\n");
         SetNull();
         RelayStatus(sessionID, GetState(), GetEntriesCount(), MASTERNODE_RESET);
     }
@@ -652,8 +652,8 @@ void CAnonSendPool::CheckFinalTransaction()
 //
 // Charge clients a fee if they're abusive
 //
-// Why bother? AnonSend uses collateral to ensure abuse to the process is kept to a minimum.
-// The submission and signing stages in AnonSend are completely separate. In the cases where
+// Why bother? Anonsend uses collateral to ensure abuse to the process is kept to a minimum.
+// The submission and signing stages in Anonsend are completely separate. In the cases where
 // a client submits a transaction then refused to sign, there must be a cost. Otherwise they
 // would be able to do this over and over again and bring the mixing to a hault.
 //
@@ -661,7 +661,7 @@ void CAnonSendPool::CheckFinalTransaction()
 // transaction for the client to be able to enter the pool. This transaction is kept by the Masternode
 // until the transaction is either complete or fails.
 //
-void CAnonSendPool::ChargeFees()
+void CAnonsendPool::ChargeFees()
 {
     if (!fMasterNode) return;
 
@@ -681,7 +681,7 @@ void CAnonSendPool::ChargeFees()
 
             // This queue entry didn't send us the promised transaction
             if (!found) {
-                LogPrintf("CAnonSendPool::ChargeFees -- found uncooperative node (didn't send transaction). Found offence.\n");
+                LogPrintf("CAnonsendPool::ChargeFees -- found uncooperative node (didn't send transaction). Found offence.\n");
                 offences++;
             }
         }
@@ -692,7 +692,7 @@ void CAnonSendPool::ChargeFees()
         BOOST_FOREACH (const CAnonSendEntry v, entries) {
             BOOST_FOREACH (const CTxDSIn s, v.sev) {
                 if (!s.fHasSig) {
-                    LogPrintf("CAnonSendPool::ChargeFees -- found uncooperative node (didn't sign). Found offence\n");
+                    LogPrintf("CAnonsendPool::ChargeFees -- found uncooperative node (didn't sign). Found offence\n");
                     offences++;
                 }
             }
@@ -725,14 +725,14 @@ void CAnonSendPool::ChargeFees()
 
             // This queue entry didn't send us the promised transaction
             if (!found && r > target) {
-                LogPrintf("CAnonSendPool::ChargeFees -- found uncooperative node (didn't send transaction). charging fees.\n");
+                LogPrintf("CAnonsendPool::ChargeFees -- found uncooperative node (didn't send transaction). charging fees.\n");
 
                 CWalletTx wtxCollateral = CWalletTx(pwalletMain, txCollateral);
 
                 // Broadcast
                 if (!wtxCollateral.AcceptToMemoryPool(true)) {
                     // This must not fail. The transaction has already been signed and recorded.
-                    LogPrintf("CAnonSendPool::ChargeFees() : Error: Transaction not valid");
+                    LogPrintf("CAnonsendPool::ChargeFees() : Error: Transaction not valid");
                 }
                 wtxCollateral.RelayWalletTransaction();
                 return;
@@ -745,14 +745,14 @@ void CAnonSendPool::ChargeFees()
         BOOST_FOREACH (const CAnonSendEntry v, entries) {
             BOOST_FOREACH (const CTxDSIn s, v.sev) {
                 if (!s.fHasSig && r > target) {
-                    LogPrintf("CAnonSendPool::ChargeFees -- found uncooperative node (didn't sign). charging fees.\n");
+                    LogPrintf("CAnonsendPool::ChargeFees -- found uncooperative node (didn't sign). charging fees.\n");
 
                     CWalletTx wtxCollateral = CWalletTx(pwalletMain, v.collateral);
 
                     // Broadcast
                     if (!wtxCollateral.AcceptToMemoryPool(false)) {
                         // This must not fail. The transaction has already been signed and recorded.
-                        LogPrintf("CAnonSendPool::ChargeFees() : Error: Transaction not valid");
+                        LogPrintf("CAnonsendPool::ChargeFees() : Error: Transaction not valid");
                     }
                     wtxCollateral.RelayWalletTransaction();
                     return;
@@ -763,8 +763,8 @@ void CAnonSendPool::ChargeFees()
 }
 
 // charge the collateral randomly
-//  - AnonSend is completely free, to pay miners we randomly pay the collateral of users.
-void CAnonSendPool::ChargeRandomFees()
+//  - Anonsend is completely free, to pay miners we randomly pay the collateral of users.
+void CAnonsendPool::ChargeRandomFees()
 {
     if (fMasterNode) {
         int i = 0;
@@ -775,21 +775,21 @@ void CAnonSendPool::ChargeRandomFees()
             /*
                 Collateral Fee Charges:
 
-                Being that AnonSend has "no fees" we need to have some kind of cost associated
+                Being that Anonsend has "no fees" we need to have some kind of cost associated
                 with using it to stop abuse. Otherwise it could serve as an attack vector and
-                allow endless transaction that would bloat MarteX and make it unusable. To
+                allow endless transaction that would bloat MARTEX and make it unusable. To
                 stop these kinds of attacks 1 in 10 successful transactions are charged. This
-                adds up to a cost of 0.001 MARTEX per transaction on average.
+                adds up to a cost of 0.001 MXT per transaction on average.
             */
             if (r <= 10) {
-                LogPrintf("CAnonSendPool::ChargeRandomFees -- charging random fees. %u\n", i);
+                LogPrintf("CAnonsendPool::ChargeRandomFees -- charging random fees. %u\n", i);
 
                 CWalletTx wtxCollateral = CWalletTx(pwalletMain, txCollateral);
 
                 // Broadcast
                 if (!wtxCollateral.AcceptToMemoryPool(true)) {
                     // This must not fail. The transaction has already been signed and recorded.
-                    LogPrintf("CAnonSendPool::ChargeRandomFees() : Error: Transaction not valid");
+                    LogPrintf("CAnonsendPool::ChargeRandomFees() : Error: Transaction not valid");
                 }
                 wtxCollateral.RelayWalletTransaction();
             }
@@ -798,9 +798,9 @@ void CAnonSendPool::ChargeRandomFees()
 }
 
 //
-// Check for various timeouts (queue objects, AnonSend, etc)
+// Check for various timeouts (queue objects, Anonsend, etc)
 //
-void CAnonSendPool::CheckTimeout()
+void CAnonsendPool::CheckTimeout()
 {
     if (!fEnableZeromint && !fMasterNode) return;
 
@@ -808,27 +808,27 @@ void CAnonSendPool::CheckTimeout()
     if (!fMasterNode) {
         switch (state) {
         case POOL_STATUS_TRANSMISSION:
-            LogPrint("anonsend", "CAnonSendPool::CheckTimeout() -- Session complete -- Running Check()\n");
+            LogPrint("anonsend", "CAnonsendPool::CheckTimeout() -- Session complete -- Running Check()\n");
             Check();
             break;
         case POOL_STATUS_ERROR:
-            LogPrint("anonsend", "CAnonSendPool::CheckTimeout() -- Pool error -- Running Check()\n");
+            LogPrint("anonsend", "CAnonsendPool::CheckTimeout() -- Pool error -- Running Check()\n");
             Check();
             break;
         case POOL_STATUS_SUCCESS:
-            LogPrint("anonsend", "CAnonSendPool::CheckTimeout() -- Pool success -- Running Check()\n");
+            LogPrint("anonsend", "CAnonsendPool::CheckTimeout() -- Pool success -- Running Check()\n");
             Check();
             break;
         }
     }
 
-    // check AnonSend queue objects for timeouts
+    // check Anonsend queue objects for timeouts
     int c = 0;
-    vector<CAnonSendQueue>::iterator it = vecAnonSendQueue.begin();
-    while (it != vecAnonSendQueue.end()) {
+    vector<CAnonsendQueue>::iterator it = vecAnonsendQueue.begin();
+    while (it != vecAnonsendQueue.end()) {
         if ((*it).IsExpired()) {
-            LogPrint("anonsend", "CAnonSendPool::CheckTimeout() : Removing expired queue entry - %d\n", c);
-            it = vecAnonSendQueue.erase(it);
+            LogPrint("anonsend", "CAnonsendPool::CheckTimeout() : Removing expired queue entry - %d\n", c);
+            it = vecAnonsendQueue.erase(it);
         } else
             ++it;
         c++;
@@ -844,7 +844,7 @@ void CAnonSendPool::CheckTimeout()
         vector<CAnonSendEntry>::iterator it2 = entries.begin();
         while (it2 != entries.end()) {
             if ((*it2).IsExpired()) {
-                LogPrint("anonsend", "CAnonSendPool::CheckTimeout() : Removing expired entry - %d\n", c);
+                LogPrint("anonsend", "CAnonsendPool::CheckTimeout() : Removing expired entry - %d\n", c);
                 it2 = entries.erase(it2);
                 if (entries.size() == 0) {
                     UnlockCoins();
@@ -863,7 +863,7 @@ void CAnonSendPool::CheckTimeout()
             SetNull();
         }
     } else if (GetTimeMillis() - lastTimeChanged >= (ANONSEND_QUEUE_TIMEOUT * 1000) + addLagTime) {
-        LogPrint("anonsend", "CAnonSendPool::CheckTimeout() -- Session timed out (%ds) -- resetting\n", ANONSEND_QUEUE_TIMEOUT);
+        LogPrint("anonsend", "CAnonsendPool::CheckTimeout() -- Session timed out (%ds) -- resetting\n", ANONSEND_QUEUE_TIMEOUT);
         UnlockCoins();
         SetNull();
 
@@ -872,7 +872,7 @@ void CAnonSendPool::CheckTimeout()
     }
 
     if (state == POOL_STATUS_SIGNING && GetTimeMillis() - lastTimeChanged >= (ANONSEND_SIGNING_TIMEOUT * 1000) + addLagTime) {
-        LogPrint("anonsend", "CAnonSendPool::CheckTimeout() -- Session timed out (%ds) -- restting\n", ANONSEND_SIGNING_TIMEOUT);
+        LogPrint("anonsend", "CAnonsendPool::CheckTimeout() -- Session timed out (%ds) -- restting\n", ANONSEND_SIGNING_TIMEOUT);
         ChargeFees();
         UnlockCoins();
         SetNull();
@@ -885,7 +885,7 @@ void CAnonSendPool::CheckTimeout()
 //
 // Check for complete queue
 //
-void CAnonSendPool::CheckForCompleteQueue()
+void CAnonsendPool::CheckForCompleteQueue()
 {
     if (!fEnableZeromint && !fMasterNode) return;
 
@@ -897,7 +897,7 @@ void CAnonSendPool::CheckForCompleteQueue()
     if (state == POOL_STATUS_QUEUE && sessionUsers == GetMaxPoolTransactions()) {
         UpdateState(POOL_STATUS_ACCEPTING_ENTRIES);
 
-        CAnonSendQueue dsq;
+        CAnonsendQueue dsq;
         dsq.nDenom = sessionDenom;
         dsq.vin = activeMasternode.vin;
         dsq.time = GetTime();
@@ -908,7 +908,7 @@ void CAnonSendPool::CheckForCompleteQueue()
 }
 
 // check to see if the signature is valid
-bool CAnonSendPool::SignatureValid(const CScript& newSig, const CTxIn& newVin)
+bool CAnonsendPool::SignatureValid(const CScript& newSig, const CTxIn& newVin)
 {
     CMutableTransaction txNew;
     txNew.vin.clear();
@@ -936,19 +936,19 @@ bool CAnonSendPool::SignatureValid(const CScript& newSig, const CTxIn& newVin)
     if (found >= 0) { //might have to do this one input at a time?
         int n = found;
         txNew.vin[n].scriptSig = newSig;
-        LogPrint("anonsend", "CAnonSendPool::SignatureValid() - Sign with sig %s\n", newSig.ToString().substr(0, 24));
+        LogPrint("anonsend", "CAnonsendPool::SignatureValid() - Sign with sig %s\n", newSig.ToString().substr(0, 24));
         if (!VerifyScript(txNew.vin[n].scriptSig, sigPubKey, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC, MutableTransactionSignatureChecker(&txNew, n))) {
-            LogPrint("anonsend", "CAnonSendPool::SignatureValid() - Signing - Error signing input %u\n", n);
+            LogPrint("anonsend", "CAnonsendPool::SignatureValid() - Signing - Error signing input %u\n", n);
             return false;
         }
     }
 
-    LogPrint("anonsend", "CAnonSendPool::SignatureValid() - Signing - Successfully validated input\n");
+    LogPrint("anonsend", "CAnonsendPool::SignatureValid() - Signing - Successfully validated input\n");
     return true;
 }
 
 // check to make sure the collateral provided by the client is valid
-bool CAnonSendPool::IsCollateralValid(const CTransaction& txCollateral)
+bool CAnonsendPool::IsCollateralValid(const CTransaction& txCollateral)
 {
     if (txCollateral.vout.size() < 1) return false;
     if (txCollateral.nLockTime != 0) return false;
@@ -961,7 +961,7 @@ bool CAnonSendPool::IsCollateralValid(const CTransaction& txCollateral)
         nValueOut += o.nValue;
 
         if (!o.scriptPubKey.IsNormalPaymentScript()) {
-            LogPrintf("CAnonSendPool::IsCollateralValid - Invalid Script %s\n", txCollateral.ToString());
+            LogPrintf("CAnonsendPool::IsCollateralValid - Invalid Script %s\n", txCollateral.ToString());
             return false;
         }
     }
@@ -979,23 +979,23 @@ bool CAnonSendPool::IsCollateralValid(const CTransaction& txCollateral)
     }
 
     if (missingTx) {
-        LogPrint("anonsend", "CAnonSendPool::IsCollateralValid - Unknown inputs in collateral transaction - %s\n", txCollateral.ToString());
+        LogPrint("anonsend", "CAnonsendPool::IsCollateralValid - Unknown inputs in collateral transaction - %s\n", txCollateral.ToString());
         return false;
     }
 
     //collateral transactions are required to pay out ANONSEND_COLLATERAL as a fee to the miners
     if (nValueIn - nValueOut < ANONSEND_COLLATERAL) {
-        LogPrint("anonsend", "CAnonSendPool::IsCollateralValid - did not include enough fees in transaction %d\n%s\n", nValueOut - nValueIn, txCollateral.ToString());
+        LogPrint("anonsend", "CAnonsendPool::IsCollateralValid - did not include enough fees in transaction %d\n%s\n", nValueOut - nValueIn, txCollateral.ToString());
         return false;
     }
 
-    LogPrint("anonsend", "CAnonSendPool::IsCollateralValid %s\n", txCollateral.ToString());
+    LogPrint("anonsend", "CAnonsendPool::IsCollateralValid %s\n", txCollateral.ToString());
 
     {
         LOCK(cs_main);
         CValidationState state;
         if (!AcceptableInputs(mempool, state, txCollateral, true, NULL)) {
-            if (fDebug) LogPrintf("CAnonSendPool::IsCollateralValid - didn't pass IsAcceptable\n");
+            if (fDebug) LogPrintf("CAnonsendPool::IsCollateralValid - didn't pass IsAcceptable\n");
             return false;
         }
     }
@@ -1007,13 +1007,13 @@ bool CAnonSendPool::IsCollateralValid(const CTransaction& txCollateral)
 //
 // Add a clients transaction to the pool
 //
-bool CAnonSendPool::AddEntry(const std::vector<CTxIn>& newInput, const CAmount& nAmount, const CTransaction& txCollateral, const std::vector<CTxOut>& newOutput, int& errorID)
+bool CAnonsendPool::AddEntry(const std::vector<CTxIn>& newInput, const CAmount& nAmount, const CTransaction& txCollateral, const std::vector<CTxOut>& newOutput, int& errorID)
 {
     if (!fMasterNode) return false;
 
     BOOST_FOREACH (CTxIn in, newInput) {
         if (in.prevout.IsNull() || nAmount < 0) {
-            LogPrint("anonsend", "CAnonSendPool::AddEntry - input not valid!\n");
+            LogPrint("anonsend", "CAnonsendPool::AddEntry - input not valid!\n");
             errorID = ERR_INVALID_INPUT;
             sessionUsers--;
             return false;
@@ -1021,14 +1021,14 @@ bool CAnonSendPool::AddEntry(const std::vector<CTxIn>& newInput, const CAmount& 
     }
 
     if (!IsCollateralValid(txCollateral)) {
-        LogPrint("anonsend", "CAnonSendPool::AddEntry - collateral not valid!\n");
+        LogPrint("anonsend", "CAnonsendPool::AddEntry - collateral not valid!\n");
         errorID = ERR_INVALID_COLLATERAL;
         sessionUsers--;
         return false;
     }
 
     if ((int)entries.size() >= GetMaxPoolTransactions()) {
-        LogPrint("anonsend", "CAnonSendPool::AddEntry - entries is full!\n");
+        LogPrint("anonsend", "CAnonsendPool::AddEntry - entries is full!\n");
         errorID = ERR_ENTRIES_FULL;
         sessionUsers--;
         return false;
@@ -1039,7 +1039,7 @@ bool CAnonSendPool::AddEntry(const std::vector<CTxIn>& newInput, const CAmount& 
         BOOST_FOREACH (const CAnonSendEntry& v, entries) {
             BOOST_FOREACH (const CTxDSIn& s, v.sev) {
                 if ((CTxIn)s == in) {
-                    LogPrint("anonsend", "CAnonSendPool::AddEntry - found in vin\n");
+                    LogPrint("anonsend", "CAnonsendPool::AddEntry - found in vin\n");
                     errorID = ERR_ALREADY_HAVE;
                     sessionUsers--;
                     return false;
@@ -1052,32 +1052,32 @@ bool CAnonSendPool::AddEntry(const std::vector<CTxIn>& newInput, const CAmount& 
     v.Add(newInput, nAmount, txCollateral, newOutput);
     entries.push_back(v);
 
-    LogPrint("anonsend", "CAnonSendPool::AddEntry -- adding %s\n", newInput[0].ToString());
+    LogPrint("anonsend", "CAnonsendPool::AddEntry -- adding %s\n", newInput[0].ToString());
     errorID = MSG_ENTRIES_ADDED;
 
     return true;
 }
 
-bool CAnonSendPool::AddScriptSig(const CTxIn& newVin)
+bool CAnonsendPool::AddScriptSig(const CTxIn& newVin)
 {
-    LogPrint("anonsend", "CAnonSendPool::AddScriptSig -- new sig  %s\n", newVin.scriptSig.ToString().substr(0, 24));
+    LogPrint("anonsend", "CAnonsendPool::AddScriptSig -- new sig  %s\n", newVin.scriptSig.ToString().substr(0, 24));
 
 
     BOOST_FOREACH (const CAnonSendEntry& v, entries) {
         BOOST_FOREACH (const CTxDSIn& s, v.sev) {
             if (s.scriptSig == newVin.scriptSig) {
-                LogPrint("anonsend", "CAnonSendPool::AddScriptSig - already exists\n");
+                LogPrint("anonsend", "CAnonsendPool::AddScriptSig - already exists\n");
                 return false;
             }
         }
     }
 
     if (!SignatureValid(newVin.scriptSig, newVin)) {
-        LogPrint("anonsend", "CAnonSendPool::AddScriptSig - Invalid Sig\n");
+        LogPrint("anonsend", "CAnonsendPool::AddScriptSig - Invalid Sig\n");
         return false;
     }
 
-    LogPrint("anonsend", "CAnonSendPool::AddScriptSig -- sig %s\n", newVin.ToString());
+    LogPrint("anonsend", "CAnonsendPool::AddScriptSig -- sig %s\n", newVin.ToString());
 
     BOOST_FOREACH (CTxIn& vin, finalTransaction.vin) {
         if (newVin.prevout == vin.prevout && vin.nSequence == newVin.nSequence) {
@@ -1093,12 +1093,12 @@ bool CAnonSendPool::AddScriptSig(const CTxIn& newVin)
         }
     }
 
-    LogPrintf("CAnonSendPool::AddScriptSig -- Couldn't set sig!\n");
+    LogPrintf("CAnonsendPool::AddScriptSig -- Couldn't set sig!\n");
     return false;
 }
 
 // Check to make sure everything is signed
-bool CAnonSendPool::SignaturesComplete()
+bool CAnonsendPool::SignaturesComplete()
 {
     BOOST_FOREACH (const CAnonSendEntry& v, entries) {
         BOOST_FOREACH (const CTxDSIn& s, v.sev) {
@@ -1109,18 +1109,18 @@ bool CAnonSendPool::SignaturesComplete()
 }
 
 //
-// Execute a AnonSend denomination via a Masternode.
+// Execute a Anonsend denomination via a Masternode.
 // This is only ran from clients
 //
-void CAnonSendPool::SendAnonSendDenominate(std::vector<CTxIn>& vin, std::vector<CTxOut>& vout, CAmount amount)
+void CAnonsendPool::SendAnonsendDenominate(std::vector<CTxIn>& vin, std::vector<CTxOut>& vout, CAmount amount)
 {
     if (fMasterNode) {
-        LogPrintf("CAnonSendPool::SendAnonSendDenominate() - AnonSend from a Masternode is not supported currently.\n");
+        LogPrintf("CAnonsendPool::SendAnonsendDenominate() - Anonsend from a Masternode is not supported currently.\n");
         return;
     }
 
     if (txCollateral == CMutableTransaction()) {
-        LogPrintf("CAnonSendPool:SendAnonSendDenominate() - AnonSend collateral not set");
+        LogPrintf("CAnonsendPool:SendAnonsendDenominate() - Anonsend collateral not set");
         return;
     }
 
@@ -1137,7 +1137,7 @@ void CAnonSendPool::SendAnonSendDenominate(std::vector<CTxIn>& vin, std::vector<
 
     // we should already be connected to a Masternode
     if (!sessionFoundMasternode) {
-        LogPrintf("CAnonSendPool::SendAnonSendDenominate() - No Masternode has been selected yet.\n");
+        LogPrintf("CAnonsendPool::SendAnonsendDenominate() - No Masternode has been selected yet.\n");
         UnlockCoins();
         SetNull();
         return;
@@ -1147,13 +1147,13 @@ void CAnonSendPool::SendAnonSendDenominate(std::vector<CTxIn>& vin, std::vector<
         UnlockCoins();
         SetNull();
         fEnableZeromint = false;
-        LogPrintf("CAnonSendPool::SendAnonSendDenominate() - Not enough disk space, disabling AnonSend.\n");
+        LogPrintf("CAnonsendPool::SendAnonsendDenominate() - Not enough disk space, disabling Anonsend.\n");
         return;
     }
 
     UpdateState(POOL_STATUS_ACCEPTING_ENTRIES);
 
-    LogPrintf("CAnonSendPool::SendAnonSendDenominate() - Added transaction to pool.\n");
+    LogPrintf("CAnonsendPool::SendAnonsendDenominate() - Added transaction to pool.\n");
 
     ClearLastMessage();
 
@@ -1202,12 +1202,12 @@ void CAnonSendPool::SendAnonSendDenominate(std::vector<CTxIn>& vin, std::vector<
     Check();
 }
 
-// Incoming message from Masternode updating the progress of AnonSend
+// Incoming message from Masternode updating the progress of Anonsend
 //    newAccepted:  -1 mean's it'n not a "transaction accepted/not accepted" message, just a standard update
 //                  0 means transaction was not accepted
 //                  1 means transaction was accepted
 
-bool CAnonSendPool::StatusUpdate(int newState, int newEntriesCount, int newAccepted, int& errorID, int newSessionID)
+bool CAnonsendPool::StatusUpdate(int newState, int newEntriesCount, int newAccepted, int& errorID, int newSessionID)
 {
     if (fMasterNode) return false;
     if (state == POOL_STATUS_ERROR || state == POOL_STATUS_SUCCESS) return false;
@@ -1227,19 +1227,19 @@ bool CAnonSendPool::StatusUpdate(int newState, int newEntriesCount, int newAccep
 
         if (newAccepted == 1 && newSessionID != 0) {
             sessionID = newSessionID;
-            LogPrintf("CAnonSendPool::StatusUpdate - set sessionID to %d\n", sessionID);
+            LogPrintf("CAnonsendPool::StatusUpdate - set sessionID to %d\n", sessionID);
             sessionFoundMasternode = true;
         }
     }
 
     if (newState == POOL_STATUS_ACCEPTING_ENTRIES) {
         if (newAccepted == 1) {
-            LogPrintf("CAnonSendPool::StatusUpdate - entry accepted! \n");
+            LogPrintf("CAnonsendPool::StatusUpdate - entry accepted! \n");
             sessionFoundMasternode = true;
             //wait for other users. Masternode will report when ready
             UpdateState(POOL_STATUS_QUEUE);
         } else if (newAccepted == 0 && sessionID == 0 && !sessionFoundMasternode) {
-            LogPrintf("CAnonSendPool::StatusUpdate - entry not accepted by Masternode \n");
+            LogPrintf("CAnonsendPool::StatusUpdate - entry not accepted by Masternode \n");
             UnlockCoins();
             UpdateState(POOL_STATUS_ACCEPTING_ENTRIES);
             DoAutomaticDenominating(); //try another Masternode
@@ -1255,12 +1255,12 @@ bool CAnonSendPool::StatusUpdate(int newState, int newEntriesCount, int newAccep
 // check it to make sure it's what we want, then sign it if we agree.
 // If we refuse to sign, it's possible we'll be charged collateral
 //
-bool CAnonSendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNode* node)
+bool CAnonsendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNode* node)
 {
     if (fMasterNode) return false;
 
     finalTransaction = finalTransactionNew;
-    LogPrintf("CAnonSendPool::SignFinalTransaction %s", finalTransaction.ToString());
+    LogPrintf("CAnonsendPool::SignFinalTransaction %s", finalTransaction.ToString());
 
     vector<CTxIn> sigs;
 
@@ -1301,7 +1301,7 @@ bool CAnonSendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
                 if (foundOutputs < targetOuputs || nValue1 != nValue2) {
                     // in this case, something went wrong and we'll refuse to sign. It's possible we'll be charged collateral. But that's
                     // better then signing if the transaction doesn't look like what we wanted.
-                    LogPrintf("CAnonSendPool::Sign - My entries are not correct! Refusing to sign. %d entries %d target. \n", foundOutputs, targetOuputs);
+                    LogPrintf("CAnonsendPool::Sign - My entries are not correct! Refusing to sign. %d entries %d target. \n", foundOutputs, targetOuputs);
                     UnlockCoins();
                     SetNull();
 
@@ -1310,9 +1310,9 @@ bool CAnonSendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
 
                 const CKeyStore& keystore = *pwalletMain;
 
-                LogPrint("anonsend", "CAnonSendPool::Sign - Signing my input %i\n", mine);
+                LogPrint("anonsend", "CAnonsendPool::Sign - Signing my input %i\n", mine);
                 if (!SignSignature(keystore, prevPubKey, finalTransaction, mine, int(SIGHASH_ALL | SIGHASH_ANYONECANPAY))) { // changes scriptSig
-                    LogPrint("anonsend", "CAnonSendPool::Sign - Unable to sign my own transaction! \n");
+                    LogPrint("anonsend", "CAnonsendPool::Sign - Unable to sign my own transaction! \n");
                     // not sure what to do here, it will timeout...?
                 }
 
@@ -1321,7 +1321,7 @@ bool CAnonSendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
             }
         }
 
-        LogPrint("anonsend", "CAnonSendPool::Sign - txNew:\n%s", finalTransaction.ToString());
+        LogPrint("anonsend", "CAnonsendPool::Sign - txNew:\n%s", finalTransaction.ToString());
     }
 
     // push all of our signatures to the Masternode
@@ -1332,9 +1332,9 @@ bool CAnonSendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
     return true;
 }
 
-void CAnonSendPool::NewBlock()
+void CAnonsendPool::NewBlock()
 {
-    LogPrint("anonsend", "CAnonSendPool::NewBlock \n");
+    LogPrint("anonsend", "CAnonsendPool::NewBlock \n");
 
     //we we're processing lots of blocks, we'll just leave
     if (GetTime() - lastNewBlock < 10) return;
@@ -1343,8 +1343,8 @@ void CAnonSendPool::NewBlock()
     AnonSendPool.CheckTimeout();
 }
 
-// AnonSend transaction was completed (failed or successful)
-void CAnonSendPool::CompletedTransaction(bool error, int errorID)
+// Anonsend transaction was completed (failed or successful)
+void CAnonsendPool::CompletedTransaction(bool error, int errorID)
 {
     if (fMasterNode) return;
 
@@ -1368,19 +1368,19 @@ void CAnonSendPool::CompletedTransaction(bool error, int errorID)
     lastMessage = GetMessageByID(errorID);
 }
 
-void CAnonSendPool::ClearLastMessage()
+void CAnonsendPool::ClearLastMessage()
 {
     lastMessage = "";
 }
 
 //
-// Passively run AnonSend in the background to anonymize funds based on the given configuration.
+// Passively run Anonsend in the background to anonymize funds based on the given configuration.
 //
 // This does NOT run by default for daemons, only for QT.
 //
-bool CAnonSendPool::DoAutomaticDenominating(bool fDryRun)
+bool CAnonsendPool::DoAutomaticDenominating(bool fDryRun)
 {
-    return false;  // Disabled until AnonSend is completely removed
+    return false;  // Disabled until Anonsend is completely removed
 
     if (!fEnableZeromint) return false;
     if (fMasterNode) return false;
@@ -1407,13 +1407,13 @@ bool CAnonSendPool::DoAutomaticDenominating(bool fDryRun)
     }
 
     if (chainActive.Tip()->nHeight - cachedLastSuccess < minBlockSpacing) {
-        LogPrintf("CAnonSendPool::DoAutomaticDenominating - Last successful AnonSend action was too recent\n");
-        strAutoDenomResult = _("Last successful AnonSend action was too recent.");
+        LogPrintf("CAnonsendPool::DoAutomaticDenominating - Last successful Anonsend action was too recent\n");
+        strAutoDenomResult = _("Last successful Anonsend action was too recent.");
         return false;
     }
 
     if (mnodeman.size() == 0) {
-        LogPrint("anonsend", "CAnonSendPool::DoAutomaticDenominating - No Masternodes detected\n");
+        LogPrint("anonsend", "CAnonsendPool::DoAutomaticDenominating - No Masternodes detected\n");
         strAutoDenomResult = _("No Masternodes detected.");
         return false;
     }
@@ -1530,7 +1530,7 @@ bool CAnonSendPool::DoAutomaticDenominating(bool fDryRun)
         //don't use the queues all of the time for mixing
         if (nUseQueue > 33) {
             // Look through the queues and see if anything matches
-            BOOST_FOREACH (CAnonSendQueue& dsq, vecAnonSendQueue) {
+            BOOST_FOREACH (CAnonsendQueue& dsq, vecAnonsendQueue) {
                 CService addr;
                 if (dsq.time == 0) continue;
 
@@ -1645,20 +1645,20 @@ bool CAnonSendPool::DoAutomaticDenominating(bool fDryRun)
 }
 
 
-bool CAnonSendPool::PrepareAnonSendDenominate()
+bool CAnonsendPool::PrepareAnonsendDenominate()
 {
     std::string strError = "";
     // Submit transaction to the pool if we get here
     // Try to use only inputs with the same number of rounds starting from lowest number of rounds possible
     for (int i = 0; i < nZeromintPercentage; i++) {
-        strError = pwalletMain->PrepareAnonSendDenominate(i, i + 1);
-        LogPrintf("DoAutomaticDenominating : Running AnonSend denominate for %d rounds. Return '%s'\n", i, strError);
+        strError = pwalletMain->PrepareAnonsendDenominate(i, i + 1);
+        LogPrintf("DoAutomaticDenominating : Running Anonsend denominate for %d rounds. Return '%s'\n", i, strError);
         if (strError == "") return true;
     }
 
     // We failed? That's strange but let's just make final attempt and try to mix everything
-    strError = pwalletMain->PrepareAnonSendDenominate(0, nZeromintPercentage);
-    LogPrintf("DoAutomaticDenominating : Running AnonSend denominate for all rounds. Return '%s'\n", strError);
+    strError = pwalletMain->PrepareAnonsendDenominate(0, nZeromintPercentage);
+    LogPrintf("DoAutomaticDenominating : Running Anonsend denominate for all rounds. Return '%s'\n", strError);
     if (strError == "") return true;
 
     // Should never actually get here but just in case
@@ -1667,7 +1667,7 @@ bool CAnonSendPool::PrepareAnonSendDenominate()
     return false;
 }
 
-bool CAnonSendPool::SendRandomPaymentToSelf()
+bool CAnonsendPool::SendRandomPaymentToSelf()
 {
     int64_t nBalance = pwalletMain->GetBalance();
     int64_t nPayment = (nBalance * 0.35) + (rand() % nBalance);
@@ -1705,7 +1705,7 @@ bool CAnonSendPool::SendRandomPaymentToSelf()
 }
 
 // Split up large inputs or create fee sized inputs
-bool CAnonSendPool::MakeCollateralAmounts()
+bool CAnonsendPool::MakeCollateralAmounts()
 {
     CWalletTx wtx;
     CAmount nFeeRet = 0;
@@ -1759,7 +1759,7 @@ bool CAnonSendPool::MakeCollateralAmounts()
 }
 
 // Create denominations
-bool CAnonSendPool::CreateDenominated(CAmount nTotalValue)
+bool CAnonsendPool::CreateDenominated(CAmount nTotalValue)
 {
     CWalletTx wtx;
     CAmount nFeeRet = 0;
@@ -1837,7 +1837,7 @@ bool CAnonSendPool::CreateDenominated(CAmount nTotalValue)
     return true;
 }
 
-bool CAnonSendPool::IsCompatibleWithEntries(std::vector<CTxOut>& vout)
+bool CAnonsendPool::IsCompatibleWithEntries(std::vector<CTxOut>& vout)
 {
     if (GetDenominations(vout) == 0) return false;
 
@@ -1856,14 +1856,14 @@ bool CAnonSendPool::IsCompatibleWithEntries(std::vector<CTxOut>& vout)
     return true;
 }
 
-bool CAnonSendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txCollateral, int& errorID)
+bool CAnonsendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txCollateral, int& errorID)
 {
     if (nDenom == 0) return false;
 
-    LogPrintf("CAnonSendPool::IsCompatibleWithSession - sessionDenom %d sessionUsers %d\n", sessionDenom, sessionUsers);
+    LogPrintf("CAnonsendPool::IsCompatibleWithSession - sessionDenom %d sessionUsers %d\n", sessionDenom, sessionUsers);
 
     if (!unitTest && !IsCollateralValid(txCollateral)) {
-        LogPrint("anonsend", "CAnonSendPool::IsCompatibleWithSession - collateral not valid!\n");
+        LogPrint("anonsend", "CAnonsendPool::IsCompatibleWithSession - collateral not valid!\n");
         errorID = ERR_INVALID_COLLATERAL;
         return false;
     }
@@ -1878,7 +1878,7 @@ bool CAnonSendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txColla
 
         if (!unitTest) {
             //broadcast that I'm accepting entries, only if it's the first entry through
-            CAnonSendQueue dsq;
+            CAnonsendQueue dsq;
             dsq.nDenom = nDenom;
             dsq.vin = activeMasternode.vin;
             dsq.time = GetTime();
@@ -1894,7 +1894,7 @@ bool CAnonSendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txColla
     if ((state != POOL_STATUS_ACCEPTING_ENTRIES && state != POOL_STATUS_QUEUE) || sessionUsers >= GetMaxPoolTransactions()) {
         if ((state != POOL_STATUS_ACCEPTING_ENTRIES && state != POOL_STATUS_QUEUE)) errorID = ERR_MODE;
         if (sessionUsers >= GetMaxPoolTransactions()) errorID = ERR_QUEUE_FULL;
-        LogPrintf("CAnonSendPool::IsCompatibleWithSession - incompatible mode, return false %d %d\n", state != POOL_STATUS_ACCEPTING_ENTRIES, sessionUsers >= GetMaxPoolTransactions());
+        LogPrintf("CAnonsendPool::IsCompatibleWithSession - incompatible mode, return false %d %d\n", state != POOL_STATUS_ACCEPTING_ENTRIES, sessionUsers >= GetMaxPoolTransactions());
         return false;
     }
 
@@ -1913,14 +1913,14 @@ bool CAnonSendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txColla
 }
 
 //create a nice string to show the denominations
-void CAnonSendPool::GetDenominationsToString(int nDenom, std::string& strDenom)
+void CAnonsendPool::GetDenominationsToString(int nDenom, std::string& strDenom)
 {
     // Function returns as follows:
     //
-    // bit 0 - 100MARTEX+1 ( bit on if present )
-    // bit 1 - 10MARTEX+1
-    // bit 2 - 1MARTEX+1
-    // bit 3 - .1MARTEX+1
+    // bit 0 - 100MXT+1 ( bit on if present )
+    // bit 1 - 10MXT+1
+    // bit 2 - 1MXT+1
+    // bit 3 - .1MXT+1
     // bit 3 - non-denom
 
 
@@ -1947,7 +1947,7 @@ void CAnonSendPool::GetDenominationsToString(int nDenom, std::string& strDenom)
     }
 }
 
-int CAnonSendPool::GetDenominations(const std::vector<CTxDSOut>& vout)
+int CAnonsendPool::GetDenominations(const std::vector<CTxDSOut>& vout)
 {
     std::vector<CTxOut> vout2;
 
@@ -1958,7 +1958,7 @@ int CAnonSendPool::GetDenominations(const std::vector<CTxDSOut>& vout)
 }
 
 // return a bitshifted integer representing the denominations in this list
-int CAnonSendPool::GetDenominations(const std::vector<CTxOut>& vout, bool fSingleRandomDenom)
+int CAnonsendPool::GetDenominations(const std::vector<CTxOut>& vout, bool fSingleRandomDenom)
 {
     std::vector<pair<int64_t, int> > denomUsed;
 
@@ -1990,16 +1990,16 @@ int CAnonSendPool::GetDenominations(const std::vector<CTxOut>& vout, bool fSingl
 
     // Function returns as follows:
     //
-    // bit 0 - 100MARTEX+1 ( bit on if present )
-    // bit 1 - 10MARTEX+1
-    // bit 2 - 1MARTEX+1
-    // bit 3 - .1MARTEX+1
+    // bit 0 - 100MXT+1 ( bit on if present )
+    // bit 1 - 10MXT+1
+    // bit 2 - 1MXT+1
+    // bit 3 - .1MXT+1
 
     return denom;
 }
 
 
-int CAnonSendPool::GetDenominationsByAmounts(std::vector<CAmount>& vecAmount)
+int CAnonsendPool::GetDenominationsByAmounts(std::vector<CAmount>& vecAmount)
 {
     CScript e = CScript();
     std::vector<CTxOut> vout1;
@@ -2013,7 +2013,7 @@ int CAnonSendPool::GetDenominationsByAmounts(std::vector<CAmount>& vecAmount)
     return GetDenominations(vout1, true);
 }
 
-int CAnonSendPool::GetDenominationsByAmount(CAmount nAmount, int nDenomTarget)
+int CAnonsendPool::GetDenominationsByAmount(CAmount nAmount, int nDenomTarget)
 {
     CScript e = CScript();
     CAmount nValueLeft = nAmount;
@@ -2051,7 +2051,7 @@ int CAnonSendPool::GetDenominationsByAmount(CAmount nAmount, int nDenomTarget)
     return GetDenominations(vout1);
 }
 
-std::string CAnonSendPool::GetMessageByID(int messageID)
+std::string CAnonsendPool::GetMessageByID(int messageID)
 {
     switch (messageID) {
     case ERR_ALREADY_HAVE:
@@ -2073,7 +2073,7 @@ std::string CAnonSendPool::GetMessageByID(int messageID)
     case ERR_INVALID_TX:
         return _("Transaction not valid.");
     case ERR_MAXIMUM:
-        return _("Value more than AnonSend pool maximum allows.");
+        return _("Value more than Anonsend pool maximum allows.");
     case ERR_MN_LIST:
         return _("Not in the Masternode list.");
     case ERR_MODE:
@@ -2085,7 +2085,7 @@ std::string CAnonSendPool::GetMessageByID(int messageID)
     case ERR_QUEUE_FULL:
         return _("Masternode queue is full.");
     case ERR_RECENT:
-        return _("Last AnonSend was too recent.");
+        return _("Last Anonsend was too recent.");
     case ERR_SESSION:
         return _("Session not complete!");
     case ERR_MISSING_TX:
@@ -2111,7 +2111,7 @@ bool CAnonSendSigner::IsVinAssociatedWithPubkey(CTxIn& vin, CPubKey& pubkey)
     uint256 hash;
     if (GetTransaction(vin.prevout.hash, txVin, hash, true)) {
         BOOST_FOREACH (CTxOut out, txVin.vout) {
-            if (out.nValue == 5000 * COIN) {
+            if (out.nValue == 10000 * COIN) {
                 if (out.scriptPubKey == payee2) return true;
             }
         }
@@ -2180,7 +2180,7 @@ bool CAnonSendSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vchSi
     return (pubkey2.GetID() == pubkey.GetID());
 }
 
-bool CAnonSendQueue::Sign()
+bool CAnonsendQueue::Sign()
 {
     if (!fMasterNode) return false;
 
@@ -2191,24 +2191,24 @@ bool CAnonSendQueue::Sign()
     std::string errorMessage = "";
 
     if (!AnonSendSigner.SetKey(strMasterNodePrivKey, errorMessage, key2, pubkey2)) {
-        LogPrintf("CAnonSendQueue():Relay - ERROR: Invalid Masternodeprivkey: '%s'\n", errorMessage);
+        LogPrintf("CAnonsendQueue():Relay - ERROR: Invalid Masternodeprivkey: '%s'\n", errorMessage);
         return false;
     }
 
     if (!AnonSendSigner.SignMessage(strMessage, errorMessage, vchSig, key2)) {
-        LogPrintf("CAnonSendQueue():Relay - Sign message failed");
+        LogPrintf("CAnonsendQueue():Relay - Sign message failed");
         return false;
     }
 
     if (!AnonSendSigner.VerifyMessage(pubkey2, vchSig, strMessage, errorMessage)) {
-        LogPrintf("CAnonSendQueue():Relay - Verify message failed");
+        LogPrintf("CAnonsendQueue():Relay - Verify message failed");
         return false;
     }
 
     return true;
 }
 
-bool CAnonSendQueue::Relay()
+bool CAnonsendQueue::Relay()
 {
     LOCK(cs_vNodes);
     BOOST_FOREACH (CNode* pnode, vNodes) {
@@ -2219,7 +2219,7 @@ bool CAnonSendQueue::Relay()
     return true;
 }
 
-bool CAnonSendQueue::CheckSignature()
+bool CAnonsendQueue::CheckSignature()
 {
     CMasternode* pmn = mnodeman.Find(vin);
 
@@ -2228,7 +2228,7 @@ bool CAnonSendQueue::CheckSignature()
 
         std::string errorMessage = "";
         if (!AnonSendSigner.VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, errorMessage)) {
-            return error("CAnonSendQueue::CheckSignature() - Got bad Masternode address signature %s \n", vin.ToString().c_str());
+            return error("CAnonsendQueue::CheckSignature() - Got bad Masternode address signature %s \n", vin.ToString().c_str());
         }
 
         return true;
@@ -2238,7 +2238,7 @@ bool CAnonSendQueue::CheckSignature()
 }
 
 
-void CAnonSendPool::RelayFinalTransaction(const int sessionID, const CTransaction& txNew)
+void CAnonsendPool::RelayFinalTransaction(const int sessionID, const CTransaction& txNew)
 {
     LOCK(cs_vNodes);
     BOOST_FOREACH (CNode* pnode, vNodes) {
@@ -2246,7 +2246,7 @@ void CAnonSendPool::RelayFinalTransaction(const int sessionID, const CTransactio
     }
 }
 
-void CAnonSendPool::RelayIn(const std::vector<CTxDSIn>& vin, const int64_t& nAmount, const CTransaction& txCollateral, const std::vector<CTxDSOut>& vout)
+void CAnonsendPool::RelayIn(const std::vector<CTxDSIn>& vin, const int64_t& nAmount, const CTransaction& txCollateral, const std::vector<CTxDSOut>& vout)
 {
     if (!pSubmittedToMasternode) return;
 
@@ -2266,14 +2266,14 @@ void CAnonSendPool::RelayIn(const std::vector<CTxDSIn>& vin, const int64_t& nAmo
     }
 }
 
-void CAnonSendPool::RelayStatus(const int sessionID, const int newState, const int newEntriesCount, const int newAccepted, const int errorID)
+void CAnonsendPool::RelayStatus(const int sessionID, const int newState, const int newEntriesCount, const int newAccepted, const int errorID)
 {
     LOCK(cs_vNodes);
     BOOST_FOREACH (CNode* pnode, vNodes)
         pnode->PushMessage("dssu", sessionID, newState, newEntriesCount, newAccepted, errorID);
 }
 
-void CAnonSendPool::RelayCompletedTransaction(const int sessionID, const bool error, const int errorID)
+void CAnonsendPool::RelayCompletedTransaction(const int sessionID, const bool error, const int errorID)
 {
     LOCK(cs_vNodes);
     BOOST_FOREACH (CNode* pnode, vNodes)
@@ -2283,7 +2283,7 @@ void CAnonSendPool::RelayCompletedTransaction(const int sessionID, const bool er
 //TODO: Rename/move to core
 void ThreadCheckAnonSendPool()
 {
-    if (fLiteMode) return; //disable all AnonSend/Masternode related functionality
+    if (fLiteMode) return; //disable all Anonsend/Masternode related functionality
 
     // Make this thread recognisable as the wallet flushing thread
     RenameThread("martex-anonsend");

@@ -3,7 +3,7 @@ Release Process
 
 Before every release candidate:
 
-* Update translations (ping Fuzzbawls on Slack) see [translation_process.md](https://github.com/marcianovc/martexcoin/blob/master/doc/translation_process.md#synchronising-translations).
+* Update translations (ping Fuzzbawls on Slack) see [translation_process.md](https://github.com/MARTEX-Project/MARTEX/blob/master/doc/translation_process.md#synchronising-translations).
 
 Before every minor and major release:
 
@@ -24,12 +24,12 @@ If you're using the automated script (found in [contrib/gitian-build.sh](/contri
 Check out the source code in the following directory hierarchy.
 
     cd /path/to/your/toplevel/build
-    git clone https://github.com/marcianovc/martexcoin-gitian.sigs.git
-    git clone https://github.com/marcianovc/martexcoin-detached-sigs.git
-    git clone https://github.com/marcianovc/martexcoin-gitian-builder.git
-    git clone https://github.com/marcianovc/martexcoin.git
+    git clone https://github.com/martex-project/gitian.sigs.git
+    git clone https://github.com/martex-project/martex-detached-sigs.git
+    git clone https://github.com/devrandom/gitian-builder.git
+    git clone https://github.com/martex-project/martex.git
 
-### MarteX maintainers/release engineers, suggestion for writing release notes
+### MARTEX maintainers/release engineers, suggestion for writing release notes
 
 Write release notes. git shortlog helps a lot, for example:
 
@@ -50,7 +50,7 @@ If you're using the automated script (found in [contrib/gitian-build.sh](/contri
 
 Setup Gitian descriptors:
 
-    pushd ../martexcoin
+    pushd ./martex
     export SIGNER=(your Gitian key, ie bluematt, sipa, etc)
     export VERSION=(new version, e.g. 0.8.0)
     git fetch
@@ -59,19 +59,19 @@ Setup Gitian descriptors:
 
 Ensure your gitian.sigs are up-to-date if you wish to gverify your builds against other Gitian signatures.
 
-    pushd ../gitian.sigs
+    pushd ./gitian.sigs
     git pull
     popd
 
 Ensure gitian-builder is up-to-date:
 
-    pushd ../gitian-builder
+    pushd ./gitian-builder
     git pull
     popd
 
 ### Fetch and create inputs: (first time, or when dependency versions change)
 
-    pushd ../gitian-builder
+    pushd ./gitian-builder
     mkdir -p inputs
     wget -P inputs https://bitcoincore.org/cfields/osslsigncode-Backports-to-1.7.1.patch
     wget -P inputs http://downloads.sourceforge.net/project/osslsigncode/osslsigncode/osslsigncode-1.7.1.tar.gz
@@ -83,39 +83,39 @@ Create the OS X SDK tarball, see the [OS X readme](README_osx.md) for details, a
 
 By default, Gitian will fetch source files as needed. To cache them ahead of time:
 
-    pushd ../gitian-builder
-    make -C ../martexcoin/depends download SOURCES_PATH=`pwd`/cache/common
+    pushd ./gitian-builder
+    make -C ../martex/depends download SOURCES_PATH=`pwd`/cache/common
     popd
 
 Only missing files will be fetched, so this is safe to re-run for each build.
 
 NOTE: Offline builds must use the --url flag to ensure Gitian fetches only from local URLs. For example:
 
-    pushd ../gitian-builder
+    pushd ./gitian-builder
     ./bin/gbuild --url martex=/path/to/martex,signature=/path/to/sigs {rest of arguments}
     popd
 
 The gbuild invocations below <b>DO NOT DO THIS</b> by default.
 
-### Build and sign MarteX for Linux, Windows, and OS X:
+### Build and sign MARTEX Core for Linux, Windows, and OS X:
 
-    pushd ../gitian-builder
-    ./bin/gbuild --memory 3000 --commit martexcoin=v${VERSION} ../martexcoin/contrib/gitian-descriptors/gitian-linux.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-linux --destination ../gitian.sigs/ ../martexcoin/contrib/gitian-descriptors/gitian-linux.yml
+    pushd ./gitian-builder
+    ./bin/gbuild --memory 3000 --commit martex=v${VERSION} ../martex/contrib/gitian-descriptors/gitian-linux.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-linux --destination ../gitian.sigs/ ../martex/contrib/gitian-descriptors/gitian-linux.yml
     mv build/out/martex-*.tar.gz build/out/src/martex-*.tar.gz ../
 
-    ./bin/gbuild --memory 3000 --commit martexcoin=v${VERSION} ../martexcoin/contrib/gitian-descriptors/gitian-win.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-win-unsigned --destination ../gitian.sigs/ ../martexcoin/contrib/gitian-descriptors/gitian-win.yml
+    ./bin/gbuild --memory 3000 --commit martex=v${VERSION} ../martex/contrib/gitian-descriptors/gitian-win.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-win-unsigned --destination ../gitian.sigs/ ../martex/contrib/gitian-descriptors/gitian-win.yml
     mv build/out/martex-*-win-unsigned.tar.gz inputs/martex-win-unsigned.tar.gz
     mv build/out/martex-*.zip build/out/martex-*.exe ../
 
-    ./bin/gbuild --memory 3000 --commit martexcoin=v${VERSION} ../martexcoin/contrib/gitian-descriptors/gitian-osx.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-osx-unsigned --destination ../gitian.sigs/ ../martexcoin/contrib/gitian-descriptors/gitian-osx.yml
+    ./bin/gbuild --memory 3000 --commit martex=v${VERSION} ../martex/contrib/gitian-descriptors/gitian-osx.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-osx-unsigned --destination ../gitian.sigs/ ../martex/contrib/gitian-descriptors/gitian-osx.yml
     mv build/out/martex-*-osx-unsigned.tar.gz inputs/martex-osx-unsigned.tar.gz
     mv build/out/martex-*.tar.gz build/out/martex-*.dmg ../
 
-    ./bin/gbuild --memory 3000 --commit martexcoin=v${VERSION} ../martexcoin/contrib/gitian-descriptors/gitian-aarch64.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-linux --destination ../gitian.sigs/ ../martexcoin/contrib/gitian-descriptors/gitian-aarch64.yml
+    ./bin/gbuild --memory 3000 --commit martex=v${VERSION} ../martex/contrib/gitian-descriptors/gitian-aarch64.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-aarch64 --destination ../gitian.sigs/ ../martex/contrib/gitian-descriptors/gitian-aarch64.yml
     mv build/out/martex-*.tar.gz build/out/src/martex-*.tar.gz ../
     popd
 
@@ -131,16 +131,16 @@ Build output expected:
 
 Add other gitian builders keys to your gpg keyring, and/or refresh keys.
 
-    gpg --import martexcoin/contrib/gitian-keys/*.pgp
+    gpg --import martex/contrib/gitian-keys/*.pgp
     gpg --refresh-keys
 
 Verify the signatures
 
-    pushd ../gitian-builder
-    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-linux ../martexcoin/contrib/gitian-descriptors/gitian-linux.yml
-    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-win-unsigned ../martexcoin/contrib/gitian-descriptors/gitian-win.yml
-    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-osx-unsigned ../martexcoin/contrib/gitian-descriptors/gitian-osx.yml
-    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-aarch64 ../martexcoin/contrib/gitian-descriptors/gitian-aarch64.yml
+    pushd ./gitian-builder
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-linux ../martex/contrib/gitian-descriptors/gitian-linux.yml
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-win-unsigned ../martex/contrib/gitian-descriptors/gitian-win.yml
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-osx-unsigned ../martex/contrib/gitian-descriptors/gitian-osx.yml
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-aarch64 ../martex/contrib/gitian-descriptors/gitian-aarch64.yml
     popd
 
 ### Next steps:
@@ -190,23 +190,23 @@ Codesigner only: Commit the detached codesign payloads:
 Non-codesigners: wait for Windows/OS X detached signatures:
 
 - Once the Windows/OS X builds each have 3 matching signatures, they will be signed with their respective release keys.
-- Detached signatures will then be committed to the [martex-detached-sigs](https://github.com/CooleRRSA/martex-ng-detached-sigs) repository, which can be combined with the unsigned apps to create signed binaries.
+- Detached signatures will then be committed to the [martex-detached-sigs](https://github.com/MARTEX-Project/martex-detached-sigs) repository, which can be combined with the unsigned apps to create signed binaries.
 
 Create (and optionally verify) the signed OS X binary:
 
-    pushd ../gitian-builder
-    ./bin/gbuild -i --commit signature=v${VERSION} ../martexcoin/contrib/gitian-descriptors/gitian-osx-signer.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-osx-signed --destination ../gitian.sigs/ ../martexcoin/contrib/gitian-descriptors/gitian-osx-signer.yml
-    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-osx-signed ../martexcoin/contrib/gitian-descriptors/gitian-osx-signer.yml
+    pushd ./gitian-builder
+    ./bin/gbuild -i --commit signature=v${VERSION} ../martex/contrib/gitian-descriptors/gitian-osx-signer.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-osx-signed --destination ../gitian.sigs/ ../martex/contrib/gitian-descriptors/gitian-osx-signer.yml
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-osx-signed ../martex/contrib/gitian-descriptors/gitian-osx-signer.yml
     mv build/out/martex-osx-signed.dmg ../martex-${VERSION}-osx.dmg
     popd
 
 Create (and optionally verify) the signed Windows binaries:
 
-    pushd ../gitian-builder
-    ./bin/gbuild -i --commit signature=v${VERSION} ../martexcoin/contrib/gitian-descriptors/gitian-win-signer.yml
-    ./bin/gsign --signer $SIGNER --release ${VERSION}-win-signed --destination ../gitian.sigs/ ../martexcoin/contrib/gitian-descriptors/gitian-win-signer.yml
-    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-win-signed ../martexcoin/contrib/gitian-descriptors/gitian-win-signer.yml
+    pushd ./gitian-builder
+    ./bin/gbuild -i --commit signature=v${VERSION} ../martex/contrib/gitian-descriptors/gitian-win-signer.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-win-signed --destination ../gitian.sigs/ ../martex/contrib/gitian-descriptors/gitian-win-signer.yml
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-win-signed ../martex/contrib/gitian-descriptors/gitian-win-signer.yml
     mv build/out/martex-*win64-setup.exe ../martex-${VERSION}-win64-setup.exe
     mv build/out/martex-*win32-setup.exe ../martex-${VERSION}-win32-setup.exe
     popd
@@ -246,7 +246,7 @@ The `*-debug*` files generated by the gitian build contain debug symbols
 for troubleshooting by developers. It is assumed that anyone that is interested
 in debugging can run gitian to generate the files for themselves. To avoid
 end-user confusion about which file to pick, as well as save storage
-space *do not upload these to the martexcoin.org server*.
+space *do not upload these to the martex.org server*.
 
 - GPG-sign it, delete the unsigned file:
 ```
@@ -266,6 +266,6 @@ Note: check that SHA256SUMS itself doesn't end up in SHA256SUMS, which is a spur
 
   - Archive release notes for the new version to `doc/release-notes/` (branch `master` and branch of the release)
 
-  - Create a [new GitHub release](https://github.com/marcianovc/martexcoin/releases/new) with a link to the archived release notes.
+  - Create a [new GitHub release](https://github.com/MARTEX-Project/MARTEX/releases/new) with a link to the archived release notes.
 
   - Celebrate

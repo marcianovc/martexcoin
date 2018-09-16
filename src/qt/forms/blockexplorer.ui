@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
+    <width>800</width>
     <height>600</height>
    </rect>
   </property>
@@ -122,8 +122,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>880</width>
-         <height>507</height>
+         <width>780</width>
+         <height>489</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -160,8 +160,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>900</width>
-     <height>21</height>
+     <width>800</width>
+     <height>27</height>
     </rect>
    </property>
   </widget>

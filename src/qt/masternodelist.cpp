@@ -1,3 +1,8 @@
+// Copyright (c) 2014-2016 The Dash Developers
+// Copyright (c) 2016-2018 The MARTEX developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "masternodelist.h"
 #include "ui_masternodelist.h"
 
@@ -11,9 +16,12 @@
 #include "sync.h"
 #include "wallet.h"
 #include "walletmodel.h"
+#include "askpassphrasedialog.h"
 
 #include <QMessageBox>
 #include <QTimer>
+
+CCriticalSection cs_masternodes;
 
 MasternodeList::MasternodeList(QWidget* parent) : QWidget(parent),
                                                   ui(new Ui::MasternodeList),
@@ -25,12 +33,13 @@ MasternodeList::MasternodeList(QWidget* parent) : QWidget(parent),
     ui->startButton->setEnabled(false);
 
     int columnAliasWidth = 100;
-    int columnAddressWidth = 140;
+    int columnAddressWidth = 200;
     int columnProtocolWidth = 60;
-    int columnStatusWidth = 70;
-    int columnActiveWidth = 100;
-    int columnLastSeenWidth = 120;
+    int columnStatusWidth = 80;
+    int columnActiveWidth = 130;
+    int columnLastSeenWidth = 130;
 
+    ui->tableWidgetMyMasternodes->setAlternatingRowColors(true);
     ui->tableWidgetMyMasternodes->setColumnWidth(0, columnAliasWidth);
     ui->tableWidgetMyMasternodes->setColumnWidth(1, columnAddressWidth);
     ui->tableWidgetMyMasternodes->setColumnWidth(2, columnProtocolWidth);
@@ -39,7 +48,7 @@ MasternodeList::MasternodeList(QWidget* parent) : QWidget(parent),
     ui->tableWidgetMyMasternodes->setColumnWidth(5, columnLastSeenWidth);
 
     ui->tableWidgetMyMasternodes->setContextMenuPolicy(Qt::CustomContextMenu);
-    
+
     QAction* startAliasAction = new QAction(tr("Start alias"), this);
     contextMenu = new QMenu();
     contextMenu->addAction(startAliasAction);
@@ -50,6 +59,9 @@ MasternodeList::MasternodeList(QWidget* parent) : QWidget(parent),
     connect(timer, SIGNAL(timeout()), this, SLOT(updateMyNodeList()));
     timer->start(1000);
 
+    // Fill MN list
+    fFilterUpdated = true;
+    nTimeFilterUpdated = GetTime();
 }
 
 MasternodeList::~MasternodeList()
@@ -174,7 +186,7 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
     QTableWidgetItem* statusItem = new QTableWidgetItem(QString::fromStdString(pmn ? pmn->GetStatus() : "MISSING"));
     GUIUtil::DHMSTableWidgetItem* activeSecondsItem = new GUIUtil::DHMSTableWidgetItem(pmn ? (pmn->lastPing.sigTime - pmn->sigTime) : 0);
     QTableWidgetItem* lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", pmn ? pmn->lastPing.sigTime : 0)));
-    QTableWidgetItem* pubkeyItem = new QTableWidgetItem(QString::fromStdString(pmn ? CMarteXAddress(pmn->pubKeyCollateralAddress.GetID()).ToString() : ""));
+    QTableWidgetItem* pubkeyItem = new QTableWidgetItem(QString::fromStdString(pmn ? CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString() : ""));
 
     ui->tableWidgetMyMasternodes->setItem(nNewRow, 0, aliasItem);
     ui->tableWidgetMyMasternodes->setItem(nNewRow, 1, addrItem);
@@ -236,7 +248,7 @@ void MasternodeList::on_startButton_clicked()
     WalletModel::EncryptionStatus encStatus = walletModel->getEncryptionStatus();
 
     if (encStatus == walletModel->Locked || encStatus == walletModel->UnlockedForAnonymizationOnly) {
-        WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+        WalletModel::UnlockContext ctx(walletModel->requestUnlock(AskPassphraseDialog::Context::Unlock_Full));
 
         if (!ctx.isValid()) return; // Unlock wallet was cancelled
 
@@ -260,7 +272,7 @@ void MasternodeList::on_startAllButton_clicked()
     WalletModel::EncryptionStatus encStatus = walletModel->getEncryptionStatus();
 
     if (encStatus == walletModel->Locked || encStatus == walletModel->UnlockedForAnonymizationOnly) {
-        WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+        WalletModel::UnlockContext ctx(walletModel->requestUnlock(AskPassphraseDialog::Context::Unlock_Full));
 
         if (!ctx.isValid()) return; // Unlock wallet was cancelled
 
@@ -291,7 +303,7 @@ void MasternodeList::on_startMissingButton_clicked()
     WalletModel::EncryptionStatus encStatus = walletModel->getEncryptionStatus();
 
     if (encStatus == walletModel->Locked || encStatus == walletModel->UnlockedForAnonymizationOnly) {
-        WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+        WalletModel::UnlockContext ctx(walletModel->requestUnlock(AskPassphraseDialog::Context::Unlock_Full));
 
         if (!ctx.isValid()) return; // Unlock wallet was cancelled
 

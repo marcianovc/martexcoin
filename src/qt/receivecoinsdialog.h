@@ -1,4 +1,5 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
+// Copyright (c) 2017 The MARTEX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -34,7 +35,7 @@ class ReceiveCoinsDialog : public QDialog
 
 public:
     enum ColumnWidths {
-        DATE_COLUMN_WIDTH = 110,
+        DATE_COLUMN_WIDTH = 130,
         LABEL_COLUMN_WIDTH = 120,
         AMOUNT_MINIMUM_COLUMN_WIDTH = 160,
         MINIMUM_COLUMN_WIDTH = 130
@@ -63,6 +64,7 @@ private:
 
 private slots:
     void on_receiveButton_clicked();
+    void on_receivingAddressesButton_clicked();
     void on_showRequestButton_clicked();
     void on_removeRequestButton_clicked();
     void on_recentRequestsView_doubleClicked(const QModelIndex& index);
@@ -72,6 +74,7 @@ private slots:
     void copyLabel();
     void copyMessage();
     void copyAmount();
+    void copyAddress();
 };
 
 #endif // BITCOIN_QT_RECEIVECOINSDIALOG_H

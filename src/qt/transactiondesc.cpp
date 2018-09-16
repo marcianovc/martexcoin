@@ -1,6 +1,6 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2015-2018 The MARTEX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -42,30 +42,30 @@ QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
                 if (nDepth < 0)
                     return tr("conflicted");
                 else if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
-                    return tr("%1/offline (verified via FastTX)").arg(nDepth);
+                    return tr("%1/offline (verified via FastX)").arg(nDepth);
                 else if (nDepth < 6)
-                    return tr("%1/confirmed (verified via FastTX)").arg(nDepth);
+                    return tr("%1/confirmed (verified via FastX)").arg(nDepth);
                 else
-                    return tr("%1 confirmations (verified via FastTX)").arg(nDepth);
+                    return tr("%1 confirmations (verified via FastX)").arg(nDepth);
             } else {
                 if (!wtx.IsTransactionLockTimedOut()) {
                     int nDepth = wtx.GetDepthInMainChain();
                     if (nDepth < 0)
                         return tr("conflicted");
                     else if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
-                        return tr("%1/offline (FastTX verification in progress - %2 of %3 signatures)").arg(nDepth).arg(signatures).arg(FASTTX_SIGNATURES_TOTAL);
+                        return tr("%1/offline (FastX verification in progress - %2 of %3 signatures)").arg(nDepth).arg(signatures).arg(FASTTX_SIGNATURES_TOTAL);
                     else if (nDepth < 6)
-                        return tr("%1/confirmed (FastTX verification in progress - %2 of %3 signatures )").arg(nDepth).arg(signatures).arg(FASTTX_SIGNATURES_TOTAL);
+                        return tr("%1/confirmed (FastX verification in progress - %2 of %3 signatures )").arg(nDepth).arg(signatures).arg(FASTTX_SIGNATURES_TOTAL);
                     else
-                        return tr("%1 confirmations (FastTX verification in progress - %2 of %3 signatures)").arg(nDepth).arg(signatures).arg(FASTTX_SIGNATURES_TOTAL);
+                        return tr("%1 confirmations (FastX verification in progress - %2 of %3 signatures)").arg(nDepth).arg(signatures).arg(FASTTX_SIGNATURES_TOTAL);
                 } else {
                     int nDepth = wtx.GetDepthInMainChain();
                     if (nDepth < 0)
                         return tr("conflicted");
                     else if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
-                        return tr("%1/offline (FastTX verification failed)").arg(nDepth);
+                        return tr("%1/offline (FastX verification failed)").arg(nDepth);
                     else if (nDepth < 6)
-                        return tr("%1/confirmed (FastTX verification failed)").arg(nDepth);
+                        return tr("%1/confirmed (FastX verification failed)").arg(nDepth);
                     else
                         return tr("%1 confirmations").arg(nDepth);
                 }
@@ -92,10 +92,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
     strHTML.reserve(4000);
     strHTML += "<html><font face='verdana, arial, helvetica, sans-serif'>";
 
-    int64_t nTime = wtx.GetTxTime();
-    CAmount nCredit = wtx.GetCredit(ISMINE_ALL);
-    CAmount nDebit = wtx.GetDebit(ISMINE_ALL);
-    CAmount nNet = nCredit - nDebit;
+    CAmount nNet = rec->credit + rec->debit;
 
     strHTML += "<b>" + tr("Status") + ":</b> " + FormatTxStatus(wtx);
     int nRequests = wtx.GetRequestCount();
@@ -107,7 +104,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
     }
     strHTML += "<br>";
 
-    strHTML += "<b>" + tr("Date") + ":</b> " + (nTime ? GUIUtil::dateTimeStr(nTime) : "") + "<br>";
+    strHTML += "<b>" + tr("Date") + ":</b> " + (rec->time ? GUIUtil::dateTimeStr(rec->time) : "") + "<br>";
 
     //
     // From
@@ -121,8 +118,8 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
         // Offline transaction
         if (nNet > 0) {
             // Credit
-            if (CMarteXAddress(rec->address).IsValid()) {
-                CTxDestination address = CMarteXAddress(rec->address).Get();
+            if (CBitcoinAddress(rec->address).IsValid()) {
+                CTxDestination address = CBitcoinAddress(rec->address).Get();
                 if (wallet->mapAddressBook.count(address)) {
                     strHTML += "<b>" + tr("From") + ":</b> " + tr("unknown") + "<br>";
                     strHTML += "<b>" + tr("To") + ":</b> ";
@@ -145,7 +142,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
         // Online transaction
         std::string strAddress = wtx.mapValue["to"];
         strHTML += "<b>" + tr("To") + ":</b> ";
-        CTxDestination dest = CMarteXAddress(strAddress).Get();
+        CTxDestination dest = CBitcoinAddress(strAddress).Get();
         if (wallet->mapAddressBook.count(dest) && !wallet->mapAddressBook[dest].name.empty())
             strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[dest].name) + " ";
         strHTML += GUIUtil::HtmlEscape(strAddress) + "<br>";
@@ -154,7 +151,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
     //
     // Amount
     //
-    if (wtx.IsCoinBase() && nCredit == 0) {
+    if (wtx.IsCoinBase() && rec->credit == 0) {
         //
         // Coinbase
         //
@@ -205,7 +202,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
                         strHTML += "<b>" + tr("To") + ":</b> ";
                         if (wallet->mapAddressBook.count(address) && !wallet->mapAddressBook[address].name.empty())
                             strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[address].name) + " ";
-                        strHTML += GUIUtil::HtmlEscape(CMarteXAddress(address).ToString());
+                        strHTML += GUIUtil::HtmlEscape(CBitcoinAddress(address).ToString());
                         if (toSelf == ISMINE_SPENDABLE)
                             strHTML += " (own address)";
                         else if (toSelf == ISMINE_WATCH_ONLY)
@@ -222,12 +219,12 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
             if (fAllToMe) {
                 // Payment to self
                 CAmount nChange = wtx.GetChange();
-                CAmount nValue = nCredit - nChange;
+                CAmount nValue = rec->credit - nChange;
                 strHTML += "<b>" + tr("Total debit") + ":</b> " + BitcoinUnits::formatHtmlWithUnit(unit, -nValue) + "<br>";
                 strHTML += "<b>" + tr("Total credit") + ":</b> " + BitcoinUnits::formatHtmlWithUnit(unit, nValue) + "<br>";
             }
 
-            CAmount nTxFee = nDebit - wtx.GetValueOut();
+            CAmount nTxFee = rec->debit - wtx.GetValueOut();
             if (nTxFee > 0)
                 strHTML += "<b>" + tr("Transaction fee") + ":</b> " + BitcoinUnits::formatHtmlWithUnit(unit, -nTxFee) + "<br>";
         } else {
@@ -309,7 +306,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
                     if (ExtractDestination(vout.scriptPubKey, address)) {
                         if (wallet->mapAddressBook.count(address) && !wallet->mapAddressBook[address].name.empty())
                             strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[address].name) + " ";
-                        strHTML += QString::fromStdString(CMarteXAddress(address).ToString());
+                        strHTML += QString::fromStdString(CBitcoinAddress(address).ToString());
                     }
                     strHTML = strHTML + " " + tr("Amount") + "=" + BitcoinUnits::formatHtmlWithUnit(unit, vout.nValue);
                     strHTML = strHTML + " IsMine=" + (wallet->IsMine(vout) & ISMINE_SPENDABLE ? tr("true") : tr("false"));

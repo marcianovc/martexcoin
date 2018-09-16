@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2015-2017 The MARTEX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -14,12 +14,12 @@
 #include "sync.h"
 
 class CTxIn;
-class CAnonSendPool;
+class CAnonsendPool;
 class CAnonSendSigner;
 class CMasterNodeVote;
-class CMarteXAddress;
-class CAnonSendQueue;
-class CAnonSendBroadcastTx;
+class CBitcoinAddress;
+class CAnonsendQueue;
+class CAnonsendBroadcastTx;
 class CActiveMasternode;
 
 // pool states for mixing
@@ -49,14 +49,14 @@ class CActiveMasternode;
 static const CAmount ANONSEND_COLLATERAL = (10 * COIN);
 static const CAmount ANONSEND_POOL_MAX = (99999.99 * COIN);
 
-extern CAnonSendPool AnonSendPool;
+extern CAnonsendPool AnonSendPool;
 extern CAnonSendSigner AnonSendSigner;
-extern std::vector<CAnonSendQueue> vecAnonSendQueue;
+extern std::vector<CAnonsendQueue> vecAnonsendQueue;
 extern std::string strMasterNodePrivKey;
-extern map<uint256, CAnonSendBroadcastTx> mapAnonSendBroadcastTxes;
+extern map<uint256, CAnonsendBroadcastTx> mapAnonsendBroadcastTxes;
 extern CActiveMasternode activeMasternode;
 
-/** Holds an AnonSend input
+/** Holds an Anonsend input
  */
 class CTxDSIn : public CTxIn
 {
@@ -75,7 +75,7 @@ public:
     }
 };
 
-/** Holds an AnonSend output
+/** Holds an Anonsend output
  */
 class CTxDSOut : public CTxOut
 {
@@ -110,7 +110,7 @@ public:
         amount = 0;
     }
 
-    /// Add entries to use for AnonSend
+    /// Add entries to use for Anonsend
     bool Add(const std::vector<CTxIn> vinIn, int64_t amountIn, const CTransaction collateralIn, const std::vector<CTxOut> voutIn)
     {
         if (isSet) {
@@ -157,9 +157,9 @@ public:
 
 
 /**
- * A currently inprogress AnonSend merge and denomination information
+ * A currently inprogress Anonsend merge and denomination information
  */
-class CAnonSendQueue
+class CAnonsendQueue
 {
 public:
     CTxIn vin;
@@ -168,7 +168,7 @@ public:
     bool ready; //ready for submit
     std::vector<unsigned char> vchSig;
 
-    CAnonSendQueue()
+    CAnonsendQueue()
     {
         nDenom = 0;
         vin = CTxIn();
@@ -210,7 +210,7 @@ public:
         return false;
     }
 
-    /** Sign this AnonSend transaction
+    /** Sign this Anonsend transaction
      *  \return true if all conditions are met:
      *     1) we have an active Masternode,
      *     2) we have a valid Masternode private key,
@@ -221,7 +221,7 @@ public:
 
     bool Relay();
 
-    /// Is this AnonSend expired?
+    /// Is this Anonsend expired?
     bool IsExpired()
     {
         return (GetTime() - time) > ANONSEND_QUEUE_TIMEOUT; // 120 seconds
@@ -231,9 +231,9 @@ public:
     bool CheckSignature();
 };
 
-/** Helper class to store AnonSend transaction (tx) information.
+/** Helper class to store Anonsend transaction (tx) information.
  */
-class CAnonSendBroadcastTx
+class CAnonsendBroadcastTx
 {
 public:
     CTransaction tx;
@@ -247,7 +247,7 @@ public:
 class CAnonSendSigner
 {
 public:
-    /// Is the inputs associated with this public key? (and there is 10000 MARTEX - checking if valid masternode)
+    /// Is the inputs associated with this public key? (and there is 10000 MXT - checking if valid masternode)
     bool IsVinAssociatedWithPubkey(CTxIn& vin, CPubKey& pubkey);
     /// Set the private/public key values, returns true if successful
     bool GetKeysFromSecret(std::string strSecret, CKey& keyRet, CPubKey& pubkeyRet);
@@ -259,9 +259,9 @@ public:
     bool VerifyMessage(CPubKey pubkey, std::vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage);
 };
 
-/** Used to keep track of current status of AnonSend pool
+/** Used to keep track of current status of Anonsend pool
  */
-class CAnonSendPool
+class CAnonsendPool
 {
 private:
     mutable CCriticalSection cs_anonsend;
@@ -330,9 +330,9 @@ public:
     int sessionDenom;    //Users must submit an denom matching this
     int cachedNumBlocks; //used for the overview screen
 
-    CAnonSendPool()
+    CAnonsendPool()
     {
-        /* AnonSend uses collateral addresses to trust parties entering the pool
+        /* Anonsend uses collateral addresses to trust parties entering the pool
             to behave themselves. If they don't it takes their money. */
 
         cachedLastSuccess = 0;
@@ -345,26 +345,26 @@ public:
         SetNull();
     }
 
-    /** Process a AnonSend message using the AnonSend protocol
+    /** Process a Anonsend message using the Anonsend protocol
      * \param pfrom
      * \param strCommand lower case command string; valid values are:
      *        Command  | Description
      *        -------- | -----------------
-     *        dsa      | AnonSend Acceptable
-     *        dsc      | AnonSend Complete
-     *        dsf      | AnonSend Final tx
-     *        dsi      | AnonSend vIn
-     *        dsq      | AnonSend Queue
-     *        dss      | AnonSend Signal Final Tx
-     *        dssu     | AnonSend status update
-     *        dssub    | AnonSend Subscribe To
+     *        dsa      | Anonsend Acceptable
+     *        dsc      | Anonsend Complete
+     *        dsf      | Anonsend Final tx
+     *        dsi      | Anonsend vIn
+     *        dsq      | Anonsend Queue
+     *        dss      | Anonsend Signal Final Tx
+     *        dssu     | Anonsend status update
+     *        dssub    | Anonsend Subscribe To
      * \param vRecv
      */
-    void ProcessMessageAnonSend(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
+    void ProcessMessageAnonsend(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 
     void InitCollateralAddress()
     {
-        SetCollateralAddress(Params().AnonSendPoolDummyAddress());
+        SetCollateralAddress(Params().AnonsendPoolDummyAddress());
     }
 
     void SetMinBlockSpacing(int minBlockSpacingIn)
@@ -411,11 +411,11 @@ public:
     void UpdateState(unsigned int newState)
     {
         if (fMasterNode && (newState == POOL_STATUS_ERROR || newState == POOL_STATUS_SUCCESS)) {
-            // LogPrint("anonsend", "CAnonSendPool::UpdateState() - Can't set state to ERROR or SUCCESS as a Masternode. \n");
+            // LogPrint("anonsend", "CAnonsendPool::UpdateState() - Can't set state to ERROR or SUCCESS as a Masternode. \n");
             return;
         }
 
-        // LogPrintf("CAnonSendPool::UpdateState() == %d | %d \n", state, newState);
+        // LogPrintf("CAnonsendPool::UpdateState() == %d | %d \n", state, newState);
         if (state != newState) {
             lastTimeChanged = GetTimeMillis();
             if (fMasterNode) {
@@ -443,11 +443,11 @@ public:
     /// Is this amount compatible with other client in the pool?
     bool IsCompatibleWithSession(CAmount nAmount, CTransaction txCollateral, int& errorID);
 
-    /// Passively run AnonSend in the background according to the configuration in settings (only for QT)
+    /// Passively run Anonsend in the background according to the configuration in settings (only for QT)
     bool DoAutomaticDenominating(bool fDryRun = false);
-    bool PrepareAnonSendDenominate();
+    bool PrepareAnonsendDenominate();
 
-    /// Check for process in AnonSend
+    /// Check for process in Anonsend
     void Check();
     void CheckFinalTransaction();
     /// Charge fees to bad actors (Charge clients a fee if they're abusive)
@@ -467,8 +467,8 @@ public:
     /// Check that all inputs are signed. (Are all inputs signed?)
     bool SignaturesComplete();
     /// As a client, send a transaction to a Masternode to start the denomination process
-    void SendAnonSendDenominate(std::vector<CTxIn>& vin, std::vector<CTxOut>& vout, CAmount amount);
-    /// Get Masternode updates about the progress of AnonSend
+    void SendAnonsendDenominate(std::vector<CTxIn>& vin, std::vector<CTxOut>& vout, CAmount amount);
+    /// Get Masternode updates about the progress of Anonsend
     bool StatusUpdate(int newState, int newEntriesCount, int newAccepted, int& errorID, int newSessionID = 0);
 
     /// As a client, check and sign the final transaction
@@ -500,7 +500,7 @@ public:
     std::string GetMessageByID(int messageID);
 
     //
-    // Relay AnonSend Messages
+    // Relay Anonsend Messages
     //
 
     void RelayFinalTransaction(const int sessionID, const CTransaction& txNew);

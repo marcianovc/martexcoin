@@ -1,7 +1,6 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The PIVX developers
-// Copyright (c) 2014-2018 The MarteX developers
+// Copyright (c) 2015-2017 The MARTEX developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -42,12 +41,7 @@
 #include <QSslSocket>
 #include <QStringList>
 #include <QTextDocument>
-
-#if QT_VERSION < 0x050000
-#include <QUrl>
-#else
 #include <QUrlQuery>
-#endif
 
 using namespace boost;
 using namespace std;
@@ -87,7 +81,7 @@ namespace // Anon namespace
 //
 static QString ipcServerName()
 {
-    QString name("MarteXQt");
+    QString name("MARTEXQt");
 
     // Append a simple hash of the datadir
     // Note that GetDataDir(true) returns a different path
@@ -107,7 +101,7 @@ static QList<QString> savedPaymentRequests;
 
 static void ReportInvalidCertificate(const QSslCertificate& cert)
 {
-    qDebug() << "ReportInvalidCertificate : Payment server found an invalid certificate: " << cert.subjectInfo(QSslCertificate::CommonName);
+    qDebug() << QString("%1: Payment server found an invalid certificate: ").arg(__func__) << cert.serialNumber() << cert.subjectInfo(QSslCertificate::CommonName) << cert.subjectInfo(QSslCertificate::DistinguishedNameQualifier) << cert.subjectInfo(QSslCertificate::OrganizationalUnitName);
 }
 
 //
@@ -147,12 +141,12 @@ void PaymentServer::LoadRootCAs(X509_STORE* _store)
             ReportInvalidCertificate(cert);
             continue;
         }
-#if QT_VERSION >= 0x050000
+
+        // Blacklisted certificate
         if (cert.isBlacklisted()) {
             ReportInvalidCertificate(cert);
             continue;
         }
-#endif
         QByteArray certData = cert.toDer();
         const unsigned char* data = (const unsigned char*)certData.data();
 
@@ -204,7 +198,7 @@ void PaymentServer::ipcParseCommandLine(int argc, char* argv[])
 
             SendCoinsRecipient r;
             if (GUIUtil::parseBitcoinURI(arg, &r) && !r.address.isEmpty()) {
-                CMarteXAddress address(r.address.toStdString());
+                CBitcoinAddress address(r.address.toStdString());
 
                 if (address.IsValid(Params(CBaseChainParams::MAIN))) {
                     SelectParams(CBaseChainParams::MAIN);
@@ -375,11 +369,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
 
     if (s.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // martex: URI
     {
-#if QT_VERSION < 0x050000
-        QUrl uri(s);
-#else
         QUrlQuery uri((QUrl(s)));
-#endif
         if (uri.hasQueryItem("r")) // payment request URI
         {
             QByteArray temp;
@@ -402,7 +392,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
         {
             SendCoinsRecipient recipient;
             if (GUIUtil::parseBitcoinURI(s, &recipient)) {
-                CMarteXAddress address(recipient.address.toStdString());
+                CBitcoinAddress address(recipient.address.toStdString());
                 if (!address.IsValid()) {
                     emit message(tr("URI handling"), tr("Invalid payment address %1").arg(recipient.address),
                         CClientUIInterface::MSG_ERROR);
@@ -410,7 +400,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
                     emit receivedPaymentRequest(recipient);
             } else
                 emit message(tr("URI handling"),
-                    tr("URI cannot be parsed! This can be caused by an invalid MarteX address or malformed URI parameters."),
+                    tr("URI cannot be parsed! This can be caused by an invalid MARTEX address or malformed URI parameters."),
                     CClientUIInterface::ICON_WARNING);
 
             return;
@@ -523,7 +513,7 @@ bool PaymentServer::processPaymentRequest(PaymentRequestPlus& request, SendCoins
         CTxDestination dest;
         if (ExtractDestination(sendingTo.first, dest)) {
             // Append destination address
-            addresses.append(QString::fromStdString(CMarteXAddress(dest).ToString()));
+            addresses.append(QString::fromStdString(CBitcoinAddress(dest).ToString()));
         } else if (!recipient.authenticatedMerchant.isEmpty()) {
             // Insecure payments to custom martex addresses are not supported
             // (there is no good way to tell the user where they are paying in a way

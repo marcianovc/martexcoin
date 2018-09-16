@@ -1,7 +1,5 @@
-// Copyright (c) 2011-2014 The Bitcoin developers
-// Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The PIVX developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2017-2018 The MARTEX developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "bip38tooldialog.h"
@@ -15,21 +13,20 @@
 #include "bip38.h"
 #include "init.h"
 #include "wallet.h"
+#include "askpassphrasedialog.h"
 
 #include <string>
 #include <vector>
 
 #include <QClipboard>
 
-Bip38ToolDialog::Bip38ToolDialog(QWidget* parent) : QDialog(parent),
+Bip38ToolDialog::Bip38ToolDialog(QWidget* parent) : QDialog(parent, Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint),
                                                     ui(new Ui::Bip38ToolDialog),
                                                     model(0)
 {
     ui->setupUi(this);
 
-#if QT_VERSION >= 0x040700
     ui->decryptedKeyOut_DEC->setPlaceholderText(tr("Click \"Decrypt Key\" to compute key"));
-#endif
 
     GUIUtil::setupAddressWidget(ui->addressIn_ENC, this);
     ui->addressIn_ENC->installEventFilter(this);
@@ -122,7 +119,7 @@ void Bip38ToolDialog::on_encryptKeyButton_ENC_clicked()
         return;
     }
 
-    CMarteXAddress addr(ui->addressIn_ENC->text().toStdString());
+    CBitcoinAddress addr(ui->addressIn_ENC->text().toStdString());
     if (!addr.IsValid()) {
         ui->statusLabel_ENC->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_ENC->setText(tr("The entered address is invalid.") + QString(" ") + tr("Please check the address and try again."));
@@ -137,7 +134,7 @@ void Bip38ToolDialog::on_encryptKeyButton_ENC_clicked()
         return;
     }
 
-    WalletModel::UnlockContext ctx(model->requestUnlock(true));
+    WalletModel::UnlockContext ctx(model->requestUnlock(AskPassphraseDialog::Context::BIP_38, true));
     if (!ctx.isValid()) {
         ui->statusLabel_ENC->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_ENC->setText(tr("Wallet unlock was cancelled."));
@@ -171,6 +168,12 @@ void Bip38ToolDialog::on_clearButton_ENC_clicked()
 }
 
 CKey key;
+void Bip38ToolDialog::on_pasteButton_DEC_clicked()
+{
+    // Paste text from clipboard into recipient field
+    ui->encryptedKeyIn_DEC->setText(QApplication::clipboard()->text());
+}
+
 void Bip38ToolDialog::on_decryptKeyButton_DEC_clicked()
 {
     string strPassphrase = ui->passphraseIn_DEC->text().toStdString();
@@ -186,25 +189,25 @@ void Bip38ToolDialog::on_decryptKeyButton_DEC_clicked()
 
     key.Set(privKey.begin(), privKey.end(), fCompressed);
     CPubKey pubKey = key.GetPubKey();
-    CMarteXAddress address(pubKey.GetID());
+    CBitcoinAddress address(pubKey.GetID());
 
-    ui->decryptedKeyOut_DEC->setText(QString::fromStdString(HexStr(privKey)));
+    ui->decryptedKeyOut_DEC->setText(QString::fromStdString(CBitcoinSecret(key).ToString()));
     ui->addressOut_DEC->setText(QString::fromStdString(address.ToString()));
 }
 
 void Bip38ToolDialog::on_importAddressButton_DEC_clicked()
 {
-    WalletModel::UnlockContext ctx(model->requestUnlock(true));
+    WalletModel::UnlockContext ctx(model->requestUnlock(AskPassphraseDialog::Context::BIP_38, true));
     if (!ctx.isValid()) {
         ui->statusLabel_DEC->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_DEC->setText(tr("Wallet unlock was cancelled."));
         return;
     }
 
-    CMarteXAddress address(ui->addressOut_DEC->text().toStdString());
+    CBitcoinAddress address(ui->addressOut_DEC->text().toStdString());
     CPubKey pubkey = key.GetPubKey();
 
-    if (!address.IsValid() || !key.IsValid() || CMarteXAddress(pubkey.GetID()).ToString() != address.ToString()) {
+    if (!address.IsValid() || !key.IsValid() || CBitcoinAddress(pubkey.GetID()).ToString() != address.ToString()) {
         ui->statusLabel_DEC->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_DEC->setText(tr("Data Not Valid.") + QString(" ") + tr("Please try again."));
         return;

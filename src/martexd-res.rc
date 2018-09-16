@@ -16,8 +16,8 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "MarteX"
-            VALUE "FileDescription",    "martexd (OSS daemon/client for MarteX)"
+            VALUE "CompanyName",        "MARTEX"
+            VALUE "FileDescription",    "martexd (OSS daemon/client for MARTEX)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "martexd"
             VALUE "LegalCopyright",     COPYRIGHT_STR

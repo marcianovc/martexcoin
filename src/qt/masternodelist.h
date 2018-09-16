@@ -1,3 +1,8 @@
+// Copyright (c) 2014-2016 The Dash Developers
+// Copyright (c) 2016-2017 The MARTEX developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef MASTERNODELIST_H
 #define MASTERNODELIST_H
 
@@ -42,6 +47,8 @@ public:
 
 private:
     QMenu* contextMenu;
+    int64_t nTimeFilterUpdated;
+    bool fFilterUpdated;
 
 public Q_SLOTS:
     void updateMyMasternodeInfo(QString strAlias, QString strAddr, CMasternode* pmn);
@@ -55,6 +62,7 @@ private:
     ClientModel* clientModel;
     WalletModel* walletModel;
     CCriticalSection cs_mnlistupdate;
+    QString strCurrentFilter;
 
 private Q_SLOTS:
     void showContextMenu(const QPoint&);

@@ -1,4 +1,5 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
+// Copyright (c) 2017-2018 The MARTEX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -30,7 +31,6 @@ class UnitDisplayStatusBarControl;
 class WalletFrame;
 class WalletModel;
 class MasternodeList;
-class MasternodeListAll;
 
 class CWallet;
 
@@ -84,7 +84,9 @@ private:
 
     UnitDisplayStatusBarControl* unitDisplayControl;
     QLabel* labelStakingIcon;
+    QPushButton* labelAutoMintIcon;
     QPushButton* labelEncryptionIcon;
+    QLabel* labelTorIcon;
     QPushButton* labelConnectionsIcon;
     QLabel* labelBlocksIcon;
     QLabel* progressBarLabel;
@@ -95,7 +97,6 @@ private:
     QAction* overviewAction;
     QAction* historyAction;
     QAction* masternodeAction;
-    QAction* masternodeAllAction;
     QAction* quitAction;
     QAction* sendCoinsAction;
     QAction* usedSendingAddressesAction;
@@ -139,7 +140,6 @@ private:
     /** Keep track of previous number of blocks, to detect progress */
     int prevBlocks;
     int spinnerFrame;
-    uint64_t nWeight;
 
     /** Create the main UI actions. */
     void createActions(const NetworkStyle* networkStyle);
@@ -183,10 +183,10 @@ public slots:
     */
     void message(const QString& title, const QString& message, unsigned int style, bool* ret = NULL);
 
-    void updateWeight();
-    void setStakingStatus();
-
 #ifdef ENABLE_WALLET
+    void setStakingStatus();
+    void setAutoMintStatus();
+
     /** Set the encryption status as shown in the UI.
        @param[in] status            current encryption status
        @see WalletModel::EncryptionStatus
@@ -199,6 +199,10 @@ public slots:
     void incomingTransaction(const QString& date, int unit, const CAmount& amount, const QString& type, const QString& address);
 #endif // ENABLE_WALLET
 
+private:
+    /** Set the Tor-enabled icon as shown in the UI. */
+    void updateTorIcon();
+
 private slots:
 #ifdef ENABLE_WALLET
     /** Switch to overview (home) page */
@@ -209,8 +213,6 @@ private slots:
     void gotoBlockExplorerPage();
     /** Switch to masternode page */
     void gotoMasternodePage();
-    /** Switch to masternode page */
-    void gotoMasternodeAllPage();
     /** Switch to privacy page */
     void gotoReceiveCoinsPage();
     /** Switch to receive coins page */

@@ -6,8 +6,12 @@ ACLOCAL_AMFLAGS = -I build-aux/m4
 SUBDIRS = src
 .PHONY: deploy FORCE
 
-GZIP_ENV="-9n"
 export PYTHONPATH
+
+if BUILD_BITCOIN_LIBS
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libbitcoinconsensus.pc
+endif
 
 BITCOIND_BIN=$(top_builddir)/src/$(BITCOIN_DAEMON_NAME)$(EXEEXT)
 BITCOIN_QT_BIN=$(top_builddir)/src/qt/$(BITCOIN_GUI_NAME)$(EXEEXT)
@@ -17,9 +21,10 @@ BITCOIN_WIN_INSTALLER=$(PACKAGE)-$(PACKAGE_VERSION)-win$(WINDOWS_BITS)-setup$(EX
 empty :=
 space := $(empty) $(empty)
 
-OSX_APP=MarteX-Qt.app
+OSX_APP=MARTEX-Qt.app
 OSX_VOLNAME = $(subst $(space),-,$(PACKAGE_NAME))
 OSX_DMG = $(OSX_VOLNAME).dmg
+OSX_BACKGROUND_SVG=background.svg
 OSX_BACKGROUND_IMAGE=background.tiff
 OSX_BACKGROUND_IMAGE_DPIS=36 72
 OSX_DSSTORE_GEN=$(top_srcdir)/contrib/macdeploy/custom_dsstore.py
@@ -37,7 +42,7 @@ WINDOWS_PACKAGING = $(top_srcdir)/share/pixmaps/bitcoin.ico \
   $(top_srcdir)/doc/README_windows.txt
 
 OSX_PACKAGING = $(OSX_DEPLOY_SCRIPT) $(OSX_FANCY_PLIST) $(OSX_INSTALLER_ICONS) \
-  $(top_srcdir)/contrib/macdeploy/$(OSX_BACKGROUND_IMAGE) \
+  $(top_srcdir)/contrib/macdeploy/$(OSX_BACKGROUND_SVG) \
   $(OSX_DSSTORE_GEN) \
   $(top_srcdir)/contrib/macdeploy/detached-sig-apply.sh \
   $(top_srcdir)/contrib/macdeploy/detached-sig-create.sh
@@ -85,7 +90,7 @@ $(OSX_APP)/Contents/Resources/bitcoin.icns: $(OSX_INSTALLER_ICONS)
 	$(MKDIR_P) $(@D)
 	$(INSTALL_DATA) $< $@
 
-$(OSX_APP)/Contents/MacOS/MarteX-Qt: $(BITCOIN_QT_BIN)
+$(OSX_APP)/Contents/MacOS/MARTEX-Qt: $(BITCOIN_QT_BIN)
 	$(MKDIR_P) $(@D)
 	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM)  $< $@
 
@@ -95,14 +100,21 @@ $(OSX_APP)/Contents/Resources/Base.lproj/InfoPlist.strings:
 
 OSX_APP_BUILT=$(OSX_APP)/Contents/PkgInfo $(OSX_APP)/Contents/Resources/empty.lproj \
   $(OSX_APP)/Contents/Resources/bitcoin.icns $(OSX_APP)/Contents/Info.plist \
-  $(OSX_APP)/Contents/MacOS/MarteX-Qt $(OSX_APP)/Contents/Resources/Base.lproj/InfoPlist.strings
+  $(OSX_APP)/Contents/MacOS/MARTEX-Qt $(OSX_APP)/Contents/Resources/Base.lproj/InfoPlist.strings
 
 osx_volname:
 	echo $(OSX_VOLNAME) >$@
 
 if BUILD_DARWIN
-$(OSX_DMG): $(OSX_APP_BUILT) $(OSX_PACKAGING) contrib/macdeploy/$(OSX_BACKGROUND_IMAGE)
+$(OSX_DMG): $(OSX_APP_BUILT) $(OSX_PACKAGING) $(OSX_BACKGROUND_IMAGE)
 	$(PYTHON) $(OSX_DEPLOY_SCRIPT) $(OSX_APP) -add-qt-tr $(OSX_QT_TRANSLATIONS) -translations-dir=$(QT_TRANSLATION_DIR) -dmg -fancy $(OSX_FANCY_PLIST) -verbose 2 -volname $(OSX_VOLNAME)
+
+$(OSX_BACKGROUND_IMAGE).png: contrib/macdeploy/$(OSX_BACKGROUND_SVG)
+	sed 's/PACKAGE_NAME/$(PACKAGE_NAME)/' < "$<" | $(RSVG_CONVERT) -f png -d 36 -p 36 -o $@
+$(OSX_BACKGROUND_IMAGE)@2x.png: contrib/macdeploy/$(OSX_BACKGROUND_SVG)
+	sed 's/PACKAGE_NAME/$(PACKAGE_NAME)/' < "$<" | $(RSVG_CONVERT) -f png -d 72 -p 72 -o $@
+$(OSX_BACKGROUND_IMAGE): $(OSX_BACKGROUND_IMAGE).png $(OSX_BACKGROUND_IMAGE)@2x.png
+	tiffutil -cathidpicheck $^ -out $@
 
 deploydir: $(OSX_DMG)
 else
@@ -113,19 +125,22 @@ $(APP_DIST_DIR)/Applications:
 	@rm -f $@
 	@cd $(@D); $(LN_S) /Applications $(@F)
 
-$(APP_DIST_EXTRAS): $(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/MarteX-Qt
+$(APP_DIST_EXTRAS): $(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/MARTEX-Qt
 
 $(OSX_DMG): $(APP_DIST_EXTRAS)
 	$(GENISOIMAGE) -no-cache-inodes -D -l -probe -V "$(OSX_VOLNAME)" -no-pad -r -dir-mode 0755 -apple -o $@ dist
 
-$(APP_DIST_DIR)/.background/$(OSX_BACKGROUND_IMAGE): contrib/macdeploy/$(OSX_BACKGROUND_IMAGE)
+dpi%.$(OSX_BACKGROUND_IMAGE): contrib/macdeploy/$(OSX_BACKGROUND_SVG)
+	sed 's/PACKAGE_NAME/$(PACKAGE_NAME)/' < "$<" | $(RSVG_CONVERT) -f png -d $* -p $* | $(IMAGEMAGICK_CONVERT) - $@
+OSX_BACKGROUND_IMAGE_DPIFILES := $(foreach dpi,$(OSX_BACKGROUND_IMAGE_DPIS),dpi$(dpi).$(OSX_BACKGROUND_IMAGE))
+$(APP_DIST_DIR)/.background/$(OSX_BACKGROUND_IMAGE): $(OSX_BACKGROUND_IMAGE_DPIFILES)
 	$(MKDIR_P) $(@D)
-	$(INSTALL_DATA) $< $@
+	$(TIFFCP) -c none $(OSX_BACKGROUND_IMAGE_DPIFILES) $@
 
 $(APP_DIST_DIR)/.DS_Store: $(OSX_DSSTORE_GEN)
 	$(PYTHON) $< "$@" "$(OSX_VOLNAME)"
 
-$(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/MarteX-Qt: $(OSX_APP_BUILT) $(OSX_PACKAGING)
+$(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/MARTEX-Qt: $(OSX_APP_BUILT) $(OSX_PACKAGING)
 	INSTALLNAMETOOL=$(INSTALLNAMETOOL)  OTOOL=$(OTOOL) STRIP=$(STRIP) $(PYTHON) $(OSX_DEPLOY_SCRIPT) $(OSX_APP) -translations-dir=$(QT_TRANSLATION_DIR) -add-qt-tr $(OSX_QT_TRANSLATIONS) -verbose 2
 
 deploydir: $(APP_DIST_EXTRAS)

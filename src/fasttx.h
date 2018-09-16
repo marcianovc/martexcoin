@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2012 The Dash developers
-// Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2015-2018 The MARTEX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,7 +16,7 @@
 
 /*
     At 15 signatures, 1/2 of the masternode network can be owned by
-    one party without comprimising the security of FastTX
+    one party without comprimising the security of FastX
     (1000/2150.0)**10 = 0.00047382219560689856
     (1000/2900.0)**10 = 2.3769498616783657e-05
 
@@ -33,7 +33,7 @@ class CConsensusVote;
 class CTransaction;
 class CTransactionLock;
 
-static const int MIN_FASTTX_PROTO_VERSION = 70002;
+static const int MIN_FASTTX_PROTO_VERSION = 70103;
 
 extern map<uint256, CTransaction> mapTxLockReq;
 extern map<uint256, CTransaction> mapTxLockReqRejected;
@@ -60,6 +60,9 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx);
 
 // keep transaction locks in memory for an hour
 void CleanTransactionLocksList();
+
+// get the accepted transaction lock signatures
+int GetTransactionLockSignatures(uint256 txHash);
 
 int64_t GetAverageVoteTime();
 

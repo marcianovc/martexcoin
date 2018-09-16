@@ -1,5 +1,5 @@
-// Copyright (c) 2011-2014 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2017-2018 The MARTEX developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef BITCOIN_QT_PRIVACYDIALOG_H
@@ -46,7 +46,7 @@ public:
 
     void setModel(WalletModel* model);
     void showOutOfSyncWarning(bool fShow);
-    void setZMarteXControlLabels(int64_t nAmount, int nQuantity);
+    void setZMxtControlLabels(int64_t nAmount, int nQuantity);
 
 public slots:
     void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, 
@@ -73,10 +73,11 @@ private:
     
     int nSecurityLevel = 0;
     bool fMinimizeChange = false;
+    bool fDenomsMinimized;
 
     int nDisplayUnit;
     bool updateLabel(const QString& address);
-    void sendzMARTEX();
+    void sendzMXT();
 
 private slots:
     void on_payTo_textChanged(const QString& address);
@@ -96,13 +97,18 @@ private slots:
 //    void coinControlClipboardLowOutput();
 //    void coinControlClipboardChange();
 
-    void on_pushButtonMintzMARTEX_clicked();
+    void on_pushButtonMintzMXT_clicked();
     void on_pushButtonMintReset_clicked();
     void on_pushButtonSpentReset_clicked();
-    void on_pushButtonSpendzMARTEX_clicked();
-    void on_pushButtonZMarteXControl_clicked();
+    void on_pushButtonSpendzMXT_clicked();
+    void on_pushButtonZMxtControl_clicked();
+    void on_pushButtonHideDenoms_clicked();
+    void on_pushButtonShowDenoms_clicked();
     void on_pasteButton_clicked();
+    void minimizeDenomsSection(bool fMinimize);
     void updateDisplayUnit();
+    void updateAutomintStatus();
+    void updateSPORK16Status();
 };
 
 #endif // BITCOIN_QT_PRIVACYDIALOG_H

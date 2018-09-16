@@ -5,7 +5,7 @@ This guide will show you how to build martexd (headless client) for OSX.
 Notes
 -----
 
-* Tested on OS X 10.7 through 10.13 on 64-bit Intel processors only.
+* Tested on OS X 10.7 through 10.10 on 64-bit Intel processors only.
 
 * All of the commands should be executed in a Terminal application. The
 built-in one is located in `/Applications/Utilities`.
@@ -36,27 +36,35 @@ sections below.
 Instructions: Homebrew
 ----------------------
 
-### Install dependencies using Homebrew
+#### Install dependencies using Homebrew
 
-        brew install autoconf automake berkeley-db4 libtool boost@1.60 miniupnpc openssl pkg-config protobuf qt5
-        brew link boost@1.60 --force
+        brew install autoconf automake berkeley-db4 libtool boost miniupnpc openssl pkg-config protobuf qt5 zmq libevent
 
 ### Building `martexd`
 
-1.  Clone the github tree to get the source code and go into the directory.
+1. Clone the github tree to get the source code and go into the directory.
 
-        git clone https://github.com/CooleRRSA/martex-ng.git
-        cd martex-ng
+        git clone https://github.com/MARTEX-Project/MARTEX.git
+        cd MARTEX
 
-2.  Build martexd:
+2.  Make the Homebrew OpenSSL headers visible to the configure script  (do ```brew info openssl``` to find out why this is necessary, or if you use Homebrew with installation folders different from the default).
+
+        export LDFLAGS+=-L/usr/local/opt/openssl/lib
+        export CPPFLAGS+=-I/usr/local/opt/openssl/include
+
+3.  Build martexd:
 
         ./autogen.sh
-        ./configure LDFLAGS='-L/usr/local/opt/openssl/lib' CPPFLAGS='-I/usr/local/opt/openssl/include' PKG_CONFIG_PATH='/usr/local/opt/openssl/lib/pkgconfig' --with-gui=qt5
+        ./configure --with-gui=qt5
         make
 
-3.  (Optional) You can also create .dmg package.
+4.  It is also a good idea to build and run the unit tests:
 
-        make deploy
+        make check
+
+5.  (Optional) You can also install martexd to your path:
+
+        make install
 
 Use Qt Creator as IDE
 ------------------------
@@ -87,9 +95,9 @@ All dependencies should be compiled with these flags:
 
  -mmacosx-version-min=10.7
  -arch x86_64
- -isysroot $(xcode-select --print-path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
+ -isysroot $(xcode-select --print-path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
 
-Once dependencies are compiled, see release-process.md for how the MarteX-Qt.app
+Once dependencies are compiled, see release-process.md for how the MARTEX-Qt.app
 bundle is packaged and signed to create the .dmg disk image that is distributed.
 
 Running
@@ -101,14 +109,14 @@ directory. We have to first create the RPC configuration file, though.
 Run `./martexd` to get the filename where it should be put, or just try these
 commands:
 
-    echo -e "rpcuser=martexrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/MarteX/martex.conf"
-    chmod 600 "/Users/${USER}/Library/Application Support/MarteX/martex.conf"
+    echo -e "rpcuser=martexrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/MARTEX/martex.conf"
+    chmod 600 "/Users/${USER}/Library/Application Support/MARTEX/martex.conf"
 
 The next time you run it, it will start downloading the blockchain, but it won't
 output anything while it's doing this. This process may take several hours;
 you can monitor its process by looking at the debug.log file, like this:
 
-    tail -f $HOME/Library/Application\ Support/MarteX/debug.log
+    tail -f $HOME/Library/Application\ Support/MARTEX/debug.log
 
 Other commands:
 -------

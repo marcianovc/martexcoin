@@ -1,7 +1,6 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The PIVX developers
-// Copyright (c) 2014-2018 The MarteX developers
+// Copyright (c) 2015-2018 The MARTEX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -15,21 +14,20 @@
 #include "base58.h"
 #include "init.h"
 #include "wallet.h"
+#include "askpassphrasedialog.h"
 
 #include <string>
 #include <vector>
 
 #include <QClipboard>
 
-SignVerifyMessageDialog::SignVerifyMessageDialog(QWidget* parent) : QDialog(parent),
+SignVerifyMessageDialog::SignVerifyMessageDialog(QWidget* parent) : QDialog(parent, Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint),
                                                                     ui(new Ui::SignVerifyMessageDialog),
                                                                     model(0)
 {
     ui->setupUi(this);
 
-#if QT_VERSION >= 0x040700
     ui->signatureOut_SM->setPlaceholderText(tr("Click \"Sign Message\" to generate signature"));
-#endif
 
     GUIUtil::setupAddressWidget(ui->addressIn_SM, this);
     GUIUtil::setupAddressWidget(ui->addressIn_VM, this);
@@ -105,7 +103,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
     /* Clear old signature to ensure users don't get confused on error with an old signature displayed */
     ui->signatureOut_SM->clear();
 
-    CMarteXAddress addr(ui->addressIn_SM->text().toStdString());
+    CBitcoinAddress addr(ui->addressIn_SM->text().toStdString());
     if (!addr.IsValid()) {
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_SM->setText(tr("The entered address is invalid.") + QString(" ") + tr("Please check the address and try again."));
@@ -119,7 +117,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
         return;
     }
 
-    WalletModel::UnlockContext ctx(model->requestUnlock(true));
+    WalletModel::UnlockContext ctx(model->requestUnlock(AskPassphraseDialog::Context::Sign_Message, true));
     if (!ctx.isValid()) {
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_SM->setText(tr("Wallet unlock was cancelled."));
@@ -178,7 +176,7 @@ void SignVerifyMessageDialog::on_addressBookButton_VM_clicked()
 
 void SignVerifyMessageDialog::on_verifyMessageButton_VM_clicked()
 {
-    CMarteXAddress addr(ui->addressIn_VM->text().toStdString());
+    CBitcoinAddress addr(ui->addressIn_VM->text().toStdString());
     if (!addr.IsValid()) {
         ui->statusLabel_VM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_VM->setText(tr("The entered address is invalid.") + QString(" ") + tr("Please check the address and try again."));
@@ -214,7 +212,7 @@ void SignVerifyMessageDialog::on_verifyMessageButton_VM_clicked()
         return;
     }
 
-    if (!(CMarteXAddress(pubkey.GetID()) == addr)) {
+    if (!(CBitcoinAddress(pubkey.GetID()) == addr)) {
         ui->statusLabel_VM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_VM->setText(QString("<nobr>") + tr("Message verification failed.") + QString("</nobr>"));
         return;

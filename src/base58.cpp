@@ -1,4 +1,5 @@
 // Copyright (c) 2014 The Bitcoin developers
+// Copyright (c) 2017 The MARTEX developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -219,13 +220,13 @@ int CBase58Data::CompareTo(const CBase58Data& b58) const
 
 namespace
 {
-class CMarteXAddressVisitor : public boost::static_visitor<bool>
+class CBitcoinAddressVisitor : public boost::static_visitor<bool>
 {
 private:
-    CMarteXAddress* addr;
+    CBitcoinAddress* addr;
 
 public:
-    CMarteXAddressVisitor(CMarteXAddress* addrIn) : addr(addrIn) {}
+    CBitcoinAddressVisitor(CBitcoinAddress* addrIn) : addr(addrIn) {}
 
     bool operator()(const CKeyID& id) const { return addr->Set(id); }
     bool operator()(const CScriptID& id) const { return addr->Set(id); }
@@ -234,29 +235,29 @@ public:
 
 } // anon namespace
 
-bool CMarteXAddress::Set(const CKeyID& id)
+bool CBitcoinAddress::Set(const CKeyID& id)
 {
     SetData(Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS), &id, 20);
     return true;
 }
 
-bool CMarteXAddress::Set(const CScriptID& id)
+bool CBitcoinAddress::Set(const CScriptID& id)
 {
     SetData(Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS), &id, 20);
     return true;
 }
 
-bool CMarteXAddress::Set(const CTxDestination& dest)
+bool CBitcoinAddress::Set(const CTxDestination& dest)
 {
-    return boost::apply_visitor(CMarteXAddressVisitor(this), dest);
+    return boost::apply_visitor(CBitcoinAddressVisitor(this), dest);
 }
 
-bool CMarteXAddress::IsValid() const
+bool CBitcoinAddress::IsValid() const
 {
     return IsValid(Params());
 }
 
-bool CMarteXAddress::IsValid(const CChainParams& params) const
+bool CBitcoinAddress::IsValid(const CChainParams& params) const
 {
     bool fCorrectSize = vchData.size() == 20;
     bool fKnownVersion = vchVersion == params.Base58Prefix(CChainParams::PUBKEY_ADDRESS) ||
@@ -264,7 +265,7 @@ bool CMarteXAddress::IsValid(const CChainParams& params) const
     return fCorrectSize && fKnownVersion;
 }
 
-CTxDestination CMarteXAddress::Get() const
+CTxDestination CBitcoinAddress::Get() const
 {
     if (!IsValid())
         return CNoDestination();
@@ -278,7 +279,7 @@ CTxDestination CMarteXAddress::Get() const
         return CNoDestination();
 }
 
-bool CMarteXAddress::GetKeyID(CKeyID& keyID) const
+bool CBitcoinAddress::GetKeyID(CKeyID& keyID) const
 {
     if (!IsValid() || vchVersion != Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
         return false;
@@ -288,7 +289,7 @@ bool CMarteXAddress::GetKeyID(CKeyID& keyID) const
     return true;
 }
 
-bool CMarteXAddress::IsScript() const
+bool CBitcoinAddress::IsScript() const
 {
     return IsValid() && vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
 }

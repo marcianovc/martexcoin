@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2016-2017 The MARTEX developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -73,7 +74,7 @@ uint256 CBlockIndex::GetBlockTrust() const
         return (uint256(1) << 256) / (bnTarget + 1);
     } else {
         // Calculate work amount for block
-        uint256 bnPoWTrust = ((~uint256(0) >> 18) / (bnTarget + 1));
+        uint256 bnPoWTrust = ((~uint256(0) >> 20) / (bnTarget + 1));
         return bnPoWTrust > 1 ? bnPoWTrust : 1;
     }
 }

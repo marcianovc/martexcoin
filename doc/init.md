@@ -89,7 +89,7 @@ use old versions of Upstart and do not supply the start-stop-daemon uitility.
 Copy martexd.init to /etc/init.d/martexd. Test by running "service martexd start".
 
 Using this script, you can adjust the path and flags to the martexd program by
-setting the MarteXD and FLAGS environment variables in the file
+setting the MARTEXD and FLAGS environment variables in the file
 /etc/sysconfig/martexd. You can also use the DAEMONOPTS environment variable here.
 
 5. Auto-respawn

@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2017 The MARTEX developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -25,7 +26,7 @@ public:
     CScriptID(const uint160& in) : uint160(in) {}
 };
 
-static const unsigned int MAX_OP_RETURN_RELAY = 515;      //!< bytes (+1 for OP_RETURN, +2 for the pushdata opcodes)
+static const unsigned int MAX_OP_RETURN_RELAY = 83;      //!< bytes (+1 for OP_RETURN, +2 for the pushdata opcodes)
 extern unsigned nMaxDatacarrierBytes;
 
 /**
@@ -77,7 +78,7 @@ public:
  *  * CNoDestination: no destination set
  *  * CKeyID: TX_PUBKEYHASH destination
  *  * CScriptID: TX_SCRIPTHASH destination
- *  A CTxDestination is the internal data type encoded in a CMarteXAddress
+ *  A CTxDestination is the internal data type encoded in a CBitcoinAddress
  */
 typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
 

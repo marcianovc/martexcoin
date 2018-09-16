@@ -1,4 +1,6 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
+// Copyright (c) 2014-2016 The Dash developers
+// Copyright (c) 2016-2018 The MARTEX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -334,37 +336,39 @@ QString TransactionTableModel::formatTxType(const TransactionRecord* wtx) const
         return tr("Masternode Reward");
     case TransactionRecord::RecvFromOther:
         return tr("Received from");
-    case TransactionRecord::RecvWithAnonSend:
-        return tr("Received via AnonSend");
+    case TransactionRecord::RecvWithAnonsend:
+        return tr("Received via Anonsend");
     case TransactionRecord::SendToAddress:
     case TransactionRecord::SendToOther:
         return tr("Sent to");
     case TransactionRecord::SendToSelf:
         return tr("Payment to yourself");
     case TransactionRecord::StakeMint:
-        return tr("Minted");
+        return tr("MXT Stake");
+    case TransactionRecord::StakeZMXT:
+        return tr("zMXT Stake");
     case TransactionRecord::Generated:
         return tr("Mined");
-    case TransactionRecord::AnonSendDenominate:
-        return tr("AnonSend Denominate");
-    case TransactionRecord::AnonSendCollateralPayment:
-        return tr("AnonSend Collateral Payment");
-    case TransactionRecord::AnonSendMakeCollaterals:
-        return tr("AnonSend Make Collateral Inputs");
-    case TransactionRecord::AnonSendCreateDenominations:
-        return tr("AnonSend Create Denominations");
+    case TransactionRecord::AnonsendDenominate:
+        return tr("Anonsend Denominate");
+    case TransactionRecord::AnonsendCollateralPayment:
+        return tr("Anonsend Collateral Payment");
+    case TransactionRecord::AnonsendMakeCollaterals:
+        return tr("Anonsend Make Collateral Inputs");
+    case TransactionRecord::AnonsendCreateDenominations:
+        return tr("Anonsend Create Denominations");
     case TransactionRecord::Obfuscated:
         return tr("Obfuscated");
     case TransactionRecord::ZerocoinMint:
-        return tr("Converted MarteX to zMARTEX");
+        return tr("Converted MXT to zMXT");
     case TransactionRecord::ZerocoinSpend:
-        return tr("Spent zMARTEX");
+        return tr("Spent zMXT");
     case TransactionRecord::RecvFromZerocoinSpend:
-        return tr("Received MarteX from zMARTEX");
-    case TransactionRecord::ZerocoinSpend_Change_zMARTEX:
-        return tr("Minted Change as zMARTEX from zMARTEX Spend");
+        return tr("Received MXT from zMXT");
+    case TransactionRecord::ZerocoinSpend_Change_zMxt:
+        return tr("Minted Change as zMXT from zMXT Spend");
     case TransactionRecord::ZerocoinSpend_FromMe:
-        return tr("Converted zMARTEX to MarteX");
+        return tr("Converted zMXT to MXT");
 
     default:
         return QString();
@@ -376,9 +380,10 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord* wtx
     switch (wtx->type) {
     case TransactionRecord::Generated:
     case TransactionRecord::StakeMint:
+    case TransactionRecord::StakeZMXT:
     case TransactionRecord::MNReward:
         return QIcon(":/icons/tx_mined");
-    case TransactionRecord::RecvWithAnonSend:
+    case TransactionRecord::RecvWithAnonsend:
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::RecvFromOther:
     case TransactionRecord::RecvFromZerocoinSpend:
@@ -405,7 +410,7 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord* wtx, b
         return QString::fromStdString(wtx->address) + watchAddress;
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::MNReward:
-    case TransactionRecord::RecvWithAnonSend:
+    case TransactionRecord::RecvWithAnonsend:
     case TransactionRecord::SendToAddress:
     case TransactionRecord::Generated:
     case TransactionRecord::StakeMint:
@@ -418,8 +423,10 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord* wtx, b
     case TransactionRecord::SendToOther:
         return QString::fromStdString(wtx->address) + watchAddress;
     case TransactionRecord::ZerocoinMint:
-    case TransactionRecord::ZerocoinSpend_Change_zMARTEX:
-        return tr("zMARTEX Accumulator");
+    case TransactionRecord::ZerocoinSpend_Change_zMxt:
+        return tr("Anonymous (zMXT Transaction)");
+    case TransactionRecord::StakeZMXT:
+        return tr("Anonymous (zMXT Stake)");
     case TransactionRecord::SendToSelf:
     default:
         return tr("(n/a)") + watchAddress;
@@ -429,8 +436,6 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord* wtx, b
 QVariant TransactionTableModel::addressColor(const TransactionRecord* wtx) const
 {
     switch (wtx->type) {
-    case TransactionRecord::SendToSelf:
-        return COLOR_BAREADDRESS;
     // Show addresses without label in a less visible color
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::SendToAddress:
@@ -440,6 +445,7 @@ QVariant TransactionTableModel::addressColor(const TransactionRecord* wtx) const
         if (label.isEmpty())
             return COLOR_BAREADDRESS;
     }
+    case TransactionRecord::SendToSelf:
     default:
         // To avoid overriding above conditional formats a default text color for this QTableView is not defined in stylesheet,
         // so we must always return a color here
@@ -567,8 +573,20 @@ QVariant TransactionTableModel::data(const QModelIndex& index, int role) const
     case Qt::TextAlignmentRole:
         return column_alignments[index.column()];
     case Qt::ForegroundRole:
-        // Non-confirmed (but not immature) as transactions are grey
-        if (!rec->status.countsForBalance && rec->status.status != TransactionStatus::Immature) {
+        // Minted
+        if (rec->type == TransactionRecord::Generated || rec->type == TransactionRecord::StakeMint ||
+                rec->type == TransactionRecord::StakeZMXT || rec->type == TransactionRecord::MNReward) {
+            if (rec->status.status == TransactionStatus::Conflicted || rec->status.status == TransactionStatus::NotAccepted)
+                return COLOR_ORPHAN;
+            else
+                return COLOR_STAKE;
+        }
+        // Conflicted tx
+        if (rec->status.status == TransactionStatus::Conflicted || rec->status.status == TransactionStatus::NotAccepted) {
+            return COLOR_CONFLICTED;
+        }
+        // Unconfimed or immature
+        if ((rec->status.status == TransactionStatus::Unconfirmed) || (rec->status.status == TransactionStatus::Immature)) {
             return COLOR_UNCONFIRMED;
         }
         if (index.column() == Amount && (rec->credit + rec->debit) < 0) {

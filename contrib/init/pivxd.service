@@ -1,0 +1,26 @@
+[Unit]
+Description=MARTEX's distributed currency daemon
+After=network.target
+
+[Service]
+User=martex
+Group=martex
+
+Type=forking
+PIDFile=/var/lib/martexd/martexd.pid
+
+ExecStart=/usr/bin/martexd -daemon -pid=/var/lib/martexd/martexd.pid \
+          -conf=/etc/martex/martex.conf -datadir=/var/lib/martexd
+
+ExecStop=-/usr/bin/martex-cli -conf=/etc/martex/martex.conf \
+         -datadir=/var/lib/martexd stop
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

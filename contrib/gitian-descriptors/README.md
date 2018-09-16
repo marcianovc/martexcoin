@@ -20,8 +20,8 @@ Sanity checks:
 
 Once you've got the right hardware and software:
 
-    git clone https://github.com/marcianovc/martexcoin
-    git clone https://github.com/devrandom/gitian-builder.git
+    git clone git://github.com/martex-project/martex.git
+    git clone git://github.com/devrandom/gitian-builder.git
     mkdir gitian-builder/inputs
     cd gitian-builder/inputs
 
@@ -62,5 +62,5 @@ Here's a description of Gavin's setup on OSX 10.6:
 5. Still inside Ubuntu, tell gitian-builder to use LXC, then follow the "Once you've got the right hardware and software" instructions above:
 
 	export USE_LXC=1
-	git clone https://github.com/marcianovc/martexcoin
+	git clone git://github.com/martex-project/martex.git
 	... etc

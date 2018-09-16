@@ -1,3 +1,7 @@
+// Copyright (c) 2017-2018 The MARTEX developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "blockexplorer.h"
 #include "bitcoinunits.h"
 #include "chainparams.h"
@@ -56,7 +60,7 @@ static std::string ScriptToString(const CScript& Script, bool Long = false, bool
         return "unknown";
 
     CTxDestination Dest;
-    CMarteXAddress Address;
+    CBitcoinAddress Address;
     if (ExtractDestination(Script, Dest) && Address.Set(Dest)) {
         if (Highlight)
             return "<span class=\"addr\">" + Address.ToString() + "</span>";
@@ -373,7 +377,7 @@ std::string TxToString(uint256 BlockHash, const CTransaction& tx)
     return Content;
 }
 
-std::string AddressToString(const CMarteXAddress& Address)
+std::string AddressToString(const CBitcoinAddress& Address)
 {
     std::string TxLabels[] =
         {
@@ -472,9 +476,9 @@ void BlockExplorer::showEvent(QShowEvent*)
         m_History.push_back(text);
         updateNavButtons();
 
-        if (!GetBoolArg("-txindex", false)) {
+        if (!GetBoolArg("-txindex", true)) {
             QString Warning = tr("Not all transactions will be shown. To view all transactions you need to set txindex=1 in the configuration file (martex.conf).");
-            QMessageBox::warning(this, "MarteX Blockchain Explorer", Warning, QMessageBox::Ok);
+            QMessageBox::warning(this, "MARTEX Core Blockchain Explorer", Warning, QMessageBox::Ok);
         }
     }
 }
@@ -513,7 +517,7 @@ bool BlockExplorer::switchTo(const QString& query)
     }
 
     // If the query is not an integer, nor a block hash, nor a transaction hash, assume an address
-    CMarteXAddress Address;
+    CBitcoinAddress Address;
     Address.SetString(query.toUtf8().constData());
     if (Address.IsValid()) {
         std::string Content = AddressToString(Address);
@@ -550,7 +554,7 @@ void BlockExplorer::setBlock(CBlockIndex* pBlock)
 
 void BlockExplorer::setContent(const std::string& Content)
 {
-    QString CSS = "body {font-size:12px; color:#f8f6f6; bgcolor:#EE3F4B;}\n a, span.addr {color:#EE3F4B; font-weight: bold;}\n table tr td {padding: 3px; border: 1px solid black; background-color: #EE3F4B;}\n td.d0 {font-weight: bold; color:#f8f6f6;}\n h2, h3 { white-space:nowrap; color:#EE3F4B;}\n a { color:#88f6f6; text-decoration:none; }\n a.nav {color:#EE3F4B;}\n";
+    QString CSS = "body {font-size:12px; color:#f8f6f6; bgcolor:#5B4C7C;}\n a, span { font-family: monospace; }\n span.addr {color:#5B4C7C; font-weight: bold;}\n table tr td {padding: 3px; border: 1px solid black; background-color: #5B4C7C;}\n td.d0 {font-weight: bold; color:#f8f6f6;}\n h2, h3 { white-space:nowrap; color:#5B4C7C;}\n a { color:#88f6f6; text-decoration:none; }\n a.nav {color:#5B4C7C;}\n";
     QString FullContent = "<html><head><style type=\"text/css\">" + CSS + "</style></head>" + "<body>" + Content.c_str() + "</body></html>";
     // printf(FullContent.toUtf8());
 

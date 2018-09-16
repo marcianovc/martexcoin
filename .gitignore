@@ -1,3 +1,4 @@
+.gitignore
 *.sublime-project
 *.sublime-workspace
 todo.txt
@@ -12,7 +13,6 @@ src/martex-cli
 src/martex-tx
 src/test/test_martex
 src/qt/test/test_martex-qt
-src/bench/bench_martex
 
 # autoreconf
 Makefile.in
@@ -34,12 +34,16 @@ build-aux/test-driver
 config.log
 config.status
 configure
+confdefs.h
+conftest.cpp
+conftest.err
 libtool
 src/config/martex-config.h
 src/config/martex-config.h.in
 src/config/stamp-h1
 share/setup.nsi
 share/qt/Info.plist
+contrib/devtools/split-debug.sh
 
 src/univalue/gen
 
@@ -48,7 +52,6 @@ src/qt/moc_*.cpp
 src/qt/forms/ui_*.h
 
 src/qt/test/moc*.cpp
-libconftest.dylib*
 
 .deps
 .dirstamp
@@ -61,6 +64,7 @@ libconftest.dylib*
 *.pyc
 *.o
 *.o-*
+*.patch
 .martex
 *.a
 *.pb.cc
@@ -79,8 +83,9 @@ libconftest.dylib*
 
 # Compilation and Qt preprocessor part
 *.qm
+Makefile
 martex-qt
-martex-Qt.app
+MARTEX-Qt.app
 
 # Unit-tests
 Makefile.test
@@ -90,13 +95,15 @@ src/test/buildenv.py
 # Resources cpp
 qrc_*.cpp
 
+# Qt creator
+*.pro.user
+
 # Mac specific
 .DS_Store
 build
 
 #lcov
 *.gcno
-*.gcda
 /*.info
 test_martex.coverage/
 total.coverage/
@@ -107,29 +114,17 @@ linux-coverage-build
 linux-build
 win32-build
 qa/pull-tester/run-bitcoind-for-test.sh
-qa/pull-tester/tests_config.py
+qa/pull-tester/tests-config.sh
 qa/pull-tester/cache/*
 qa/pull-tester/test.*/*
-qa/tmp
-cache/
-share/BitcoindComparisonTool.jar
 
 !src/leveldb*/Makefile
 
 .cproject
 .project
-.autotools
 /doc/doxygen/
+/nbproject/
 
-libbitcoinconsensus.pc
-src/qt/martex-qt.bash
-qa/pull-tester/tests-config.sh
-
-#development symlinks
-martex-cli
-martexd
-martex-qt
-make
-GenesisH0/
-genesis/
-src/sedTU4GTf
+.idea
+CMakeLists.txt
+cmake-build-debug

@@ -27,11 +27,8 @@
     <enum>QFrame::Sunken</enum>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <property name="horizontalSpacing">
+    <property name="spacing">
      <number>12</number>
-    </property>
-    <property name="verticalSpacing">
-     <number>6</number>
     </property>
     <item row="0" column="0">
      <widget class="QLabel" name="payToLabel">
@@ -54,7 +51,7 @@
       <item>
        <widget class="QValidatedLineEdit" name="payTo">
         <property name="toolTip">
-         <string>The MarteX address to send the payment to</string>
+         <string>The MARTEX address to send the payment to</string>
         </property>
        </widget>
       </item>
@@ -157,7 +154,7 @@
     <item row="3" column="1">
      <widget class="QLabel" name="messageTextLabel">
       <property name="toolTip">
-       <string>A message that was attached to the MarteX: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the MarteX network.</string>
+       <string>A message that was attached to the MARTEX: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the MARTEX network.</string>
       </property>
       <property name="textFormat">
        <enum>Qt::PlainText</enum>
@@ -595,11 +592,8 @@
     <enum>QFrame::Sunken</enum>
    </property>
    <layout class="QGridLayout" name="gridLayout_is">
-    <property name="horizontalSpacing">
+    <property name="spacing">
      <number>12</number>
-    </property>
-    <property name="verticalSpacing">
-     <number>6</number>
     </property>
     <item row="0" column="0">
      <widget class="QLabel" name="payToLabel_is">
@@ -1130,11 +1124,8 @@
     <enum>QFrame::Sunken</enum>
    </property>
    <layout class="QGridLayout" name="gridLayout_s">
-    <property name="horizontalSpacing">
+    <property name="spacing">
      <number>12</number>
-    </property>
-    <property name="verticalSpacing">
-     <number>6</number>
     </property>
     <item row="0" column="0">
      <widget class="QLabel" name="payToLabel_s">
@@ -1216,15 +1207,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>BitcoinAmountField</class>
-   <extends>QLineEdit</extends>
-   <header>bitcoinamountfield.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>QValidatedLineEdit</class>
    <extends>QLineEdit</extends>
    <header>qvalidatedlineedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>BitcoinAmountField</class>
+   <extends>QLineEdit</extends>
+   <header>bitcoinamountfield.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

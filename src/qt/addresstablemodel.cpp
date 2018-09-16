@@ -1,6 +1,6 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2015-2018 The MARTEX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -11,6 +11,7 @@
 
 #include "base58.h"
 #include "wallet.h"
+#include "askpassphrasedialog.h"
 
 #include <QDebug>
 #include <QFont>
@@ -82,7 +83,7 @@ public:
         {
             LOCK(wallet->cs_wallet);
             BOOST_FOREACH (const PAIRTYPE(CTxDestination, CAddressBookData) & item, wallet->mapAddressBook) {
-                const CMarteXAddress& address = item.first;
+                const CBitcoinAddress& address = item.first;
                 bool fMine = IsMine(*wallet, address.Get());
                 AddressTableEntry::Type addressType = translateTransactionType(
                     QString::fromStdString(item.second.purpose), fMine);
@@ -264,7 +265,7 @@ bool AddressTableModel::setData(const QModelIndex& index, const QVariant& value,
 
     if (role == Qt::EditRole) {
         LOCK(wallet->cs_wallet); /* For SetAddressBook / DelAddressBook */
-        CTxDestination curAddress = CMarteXAddress(rec->address.toStdString()).Get();
+        CTxDestination curAddress = CBitcoinAddress(rec->address.toStdString()).Get();
         if (index.column() == Label) {
             // Do nothing, if old label == new label
             if (rec->label == value.toString()) {
@@ -273,7 +274,7 @@ bool AddressTableModel::setData(const QModelIndex& index, const QVariant& value,
             }
             wallet->SetAddressBook(curAddress, value.toString().toStdString(), strPurpose);
         } else if (index.column() == Address) {
-            CTxDestination newAddress = CMarteXAddress(value.toString().toStdString()).Get();
+            CTxDestination newAddress = CBitcoinAddress(value.toString().toStdString()).Get();
             // Refuse to set invalid address, set error status and return false
             if (boost::get<CNoDestination>(&newAddress)) {
                 editStatus = INVALID_ADDRESS;
@@ -346,7 +347,7 @@ void AddressTableModel::updateEntry(const QString& address,
     const QString& purpose,
     int status)
 {
-    // Update address book model from MarteX
+    // Update address book model from MarteX core
     priv->updateEntry(address, label, isMine, purpose, status);
 }
 
@@ -374,7 +375,7 @@ QString AddressTableModel::addRow(const QString& type, const QString& label, con
         // Check for duplicate addresses
         {
             LOCK(wallet->cs_wallet);
-            if (wallet->mapAddressBook.count(CMarteXAddress(strAddress).Get())) {
+            if (wallet->mapAddressBook.count(CBitcoinAddress(strAddress).Get())) {
                 editStatus = DUPLICATE_ADDRESS;
                 return QString();
             }
@@ -383,7 +384,7 @@ QString AddressTableModel::addRow(const QString& type, const QString& label, con
         // Generate a new address to associate with given label
         CPubKey newKey;
         if (!wallet->GetKeyFromPool(newKey)) {
-            WalletModel::UnlockContext ctx(walletModel->requestUnlock(true));
+            WalletModel::UnlockContext ctx(walletModel->requestUnlock(AskPassphraseDialog::Context::Unlock_Full, true));
             if (!ctx.isValid()) {
                 // Unlock wallet failed or was cancelled
                 editStatus = WALLET_UNLOCK_FAILURE;
@@ -394,7 +395,7 @@ QString AddressTableModel::addRow(const QString& type, const QString& label, con
                 return QString();
             }
         }
-        strAddress = CMarteXAddress(newKey.GetID()).ToString();
+        strAddress = CBitcoinAddress(newKey.GetID()).ToString();
     } else {
         return QString();
     }
@@ -402,7 +403,7 @@ QString AddressTableModel::addRow(const QString& type, const QString& label, con
     // Add entry
     {
         LOCK(wallet->cs_wallet);
-        wallet->SetAddressBook(CMarteXAddress(strAddress).Get(), strLabel,
+        wallet->SetAddressBook(CBitcoinAddress(strAddress).Get(), strLabel,
             (type == Send ? "send" : "receive"));
     }
     return QString::fromStdString(strAddress);
@@ -419,7 +420,7 @@ bool AddressTableModel::removeRows(int row, int count, const QModelIndex& parent
     }
     {
         LOCK(wallet->cs_wallet);
-        wallet->DelAddressBook(CMarteXAddress(rec->address.toStdString()).Get());
+        wallet->DelAddressBook(CBitcoinAddress(rec->address.toStdString()).Get());
     }
     return true;
 }
@@ -430,7 +431,7 @@ QString AddressTableModel::labelForAddress(const QString& address) const
 {
     {
         LOCK(wallet->cs_wallet);
-        CMarteXAddress address_parsed(address.toStdString());
+        CBitcoinAddress address_parsed(address.toStdString());
         std::map<CTxDestination, CAddressBookData>::iterator mi = wallet->mapAddressBook.find(address_parsed.Get());
         if (mi != wallet->mapAddressBook.end()) {
             return QString::fromStdString(mi->second.name);

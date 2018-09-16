@@ -1,4 +1,5 @@
 // Copyright (c) 2011-2013 The Bitcoin developers
+// Copyright (c) 2016-2018 The MARTEX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -125,13 +126,6 @@ void WalletFrame::gotoMasternodePage() // Masternode list
         i.value()->gotoMasternodePage();
 }
 
-void WalletFrame::gotoMasternodeAllPage() // Masternode list
-{
-    QMap<QString, WalletView*>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
-        i.value()->gotoMasternodeAllPage();
-}
-
 void WalletFrame::gotoBlockExplorerPage()
 {
     QMap<QString, WalletView*>::const_iterator i;
@@ -218,11 +212,21 @@ void WalletFrame::changePassphrase()
         walletView->changePassphrase();
 }
 
-void WalletFrame::unlockWallet()
+void WalletFrame::unlockWallet(bool setContext)
+{
+    if (setContext) {
+        unlockWallet(AskPassphraseDialog::Context::Unlock_Full);
+    }
+    else {
+        unlockWallet(AskPassphraseDialog::Context::Unlock_Menu);
+    }
+}
+
+void WalletFrame::unlockWallet(AskPassphraseDialog::Context context)
 {
     WalletView* walletView = currentWalletView();
     if (walletView)
-        walletView->unlockWallet();
+        walletView->unlockWallet(context);
 }
 
 void WalletFrame::lockWallet()
