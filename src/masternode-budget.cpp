@@ -495,8 +495,6 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, b
     CBlockIndex* pindexPrev = chainActive.Tip();
     if (!pindexPrev) return;
 
-    if (GetTime() < Params().StartMasternodePayments()) return;
-
     int nHighestCount = 0;
     CScript payee;
     CAmount nAmount = 0;

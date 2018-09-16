@@ -286,9 +286,6 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     if (!pindexPrev) return;
 
     bool hasPayment = true;
-
-    if (GetTime() < Params().StartMasternodePayments()) return;
-
     CScript payee;
 
     //spork
