@@ -4462,7 +4462,7 @@ bool CWallet::CreateZMxtOutPut(libzerocoin::CoinDenomination denomination, CTxOu
 {
     // mint a new coin (create Pedersen Commitment) and extract PublicCoin that is shareable from it
     libzerocoin::PrivateCoin coin(Params().Zerocoin_Params(false), denomination, false);
-    zwalletMain->GenerateDeterministicZMxt(denomination, coin, dMint);
+    zwalletMain->GenerateDeterministicZMXT(denomination, coin, dMint);
 
     libzerocoin::PublicCoin pubCoin = coin.getPublicCoin();
 

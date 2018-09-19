@@ -15,10 +15,10 @@
 
 uint256 CBlockHeader::GetHash() const
 {
-    if(nVersion < 4)
+    //if(nVersion < 4)
         return X13Hash(BEGIN(nVersion), END(nNonce));
 
-    return Hash(BEGIN(nVersion), END(nAccumulatorCheckpoint));
+    //return Hash(BEGIN(nVersion), END(nAccumulatorCheckpoint));
 }
 
 uint256 CBlock::BuildMerkleTree(bool* fMutated) const
