@@ -28,49 +28,18 @@ struct SeedSpec6 {
 
 /**
  * Main network
- */
-
-static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
-{
-    CMutableTransaction txNew;
-    txNew.nVersion = 1;
-    txNew.vin.resize(1);
-    txNew.vout.resize(1);
-    txNew.vin[0].scriptSig = CScript() << 0 << CScriptNum(42) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-    txNew.vout[0].nValue = genesisReward;
-    txNew.vout[0].scriptPubKey = genesisOutputScript;
-    txNew.vout[0].SetEmpty();
-
-    CBlock genesis;
-    genesis.nTime    = nTime;
-    genesis.nBits    = nBits;
-    genesis.nNonce   = nNonce;
-    genesis.nVersion = nVersion;
-    genesis.vtx.push_back(txNew);
-    genesis.hashPrevBlock.SetNull();
-    genesis.hashMerkleRoot = genesis.BuildMerkleTree();;
-    return genesis;
-}
-
-/**
+ *
  * Build the genesis block. Note that the output of its generation
  * transaction cannot be spent since it did not originally exist in the
  * database.
  *
- * CBlock(hash=000000000019d6, ver=1, hashPrevBlock=00000000000000, hashMerkleRoot=4a5e1e, nTime=1231006505, nBits=1d00ffff, nNonce=2083236893, vtx=1)
- *   CTransaction(hash=4a5e1e, ver=1, vin.size=1, vout.size=1, nLockTime=0)
- *     CTxIn(COutPoint(000000, -1), coinbase 04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73)
- *     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
- *   vMerkleTree: 4a5e1e
+ *   CBlock(hash=cf0e34e039bde2f97264768907c204e2703339f5cfb38f65440cee7f9adfb794, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000,
+ *    hashMerkleRoot=07fab1cd4f71e2e3a036f201590ddb4be37bb4573dfca63d3216405f3650dc18, nTime=1537366286, nBits=1e3fffff, nNonce=857701, vtx=1)
+ *    CTransaction(hash=07fab1cd4f, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+ *      CTxIn(COutPoint(0000000000000000000000000000000000000000000000000000000000000000, 4294967295), coinbase 04ffff001d01040b53696e6365203230313421)
+ *      CTxOut(nValue=1.00000000, scriptPubKey=046acdcdecdea7b6b17c217f27e73c)
+ *    vMerkleTree:  07fab1cd4f71e2e3a036f201590ddb4be37bb4573dfca63d3216405f3650dc18
  */
-
-static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
-{
-    const char* pszTimestamp = "Since 2014!";
-    const CScript genesisOutputScript = CScript() << ParseHex("046acdcdecdea7b6b17c217f27e73ca2acbddda8e70570ff355dbe1af30347d280f66067d136a797fce4d01227cc5be988676184d842930765fcce5dc011ad158e") << OP_CHECKSIG;
-    return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
-}
-
 
 //! Convert the pnSeeds6 array into usable address objects.
 static void convertSeed6(std::vector<CAddress>& vSeedsOut, const SeedSpec6* data, unsigned int count)
@@ -96,11 +65,12 @@ static void convertSeed6(std::vector<CAddress>& vSeedsOut, const SeedSpec6* data
 // + Contains no strange transactions
 static Checkpoints::MapCheckpoints mapCheckpoints =
     boost::assign::map_list_of
-    (     0, uint256("0ea77c761a5194ca3137276ac426aefb024815b9d620dc843cb96646b582bb8c"));
+    (     0, uint256("0xcf0e34e039bde2f97264768907c204e2703339f5cfb38f65440cee7f9adfb794"));
+    //boost::assign::map_list_of(0, uint256("0x001"));
 
 static const Checkpoints::CCheckpointData data = {
     &mapCheckpoints,
-    1399939200, // * UNIX timestamp of last checkpoint block
+    1537366286, // * UNIX timestamp of last checkpoint block
     1,          // * total number of transactions between genesis and last checkpoint
                 //   (the tx=... number in the SetBestChain debug.log lines)
     2000        // * estimated number of transactions per day after checkpoint
@@ -108,21 +78,23 @@ static const Checkpoints::CCheckpointData data = {
 
 static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
     boost::assign::map_list_of
-    (     0, uint256("0ea77c761a5194ca3137276ac426aefb024815b9d620dc843cb96646b582bb8c"));
+    (     0, uint256("0x4c02cb69c798414bdb443382818f9f5619e52c198ad91586b6515ac40e888563"));
+    //boost::assign::map_list_of(0, uint256("0x001"));
 
 static const Checkpoints::CCheckpointData dataTestnet = {
     &mapCheckpointsTestnet,
-    1399939200,
+    1537366286,
     1,
     250};
 
 static Checkpoints::MapCheckpoints mapCheckpointsRegtest =
     boost::assign::map_list_of
-    (     0, uint256("0ea77c761a5194ca3137276ac426aefb024815b9d620dc843cb96646b582bb8c"));
+    (     0, uint256("0x7c3cbaa93b112a59d234b0553016e65604fa5c1763e3b429a038a36395720632"));
+    //boost::assign::map_list_of(0, uint256("0x001"));
 
 static const Checkpoints::CCheckpointData dataRegtest = {
     &mapCheckpointsRegtest,
-    1399939200,
+    1537366286,
     1,
     100};
 
@@ -179,14 +151,25 @@ public:
         nZerocoinStartTime = 1546214400; //Mon, 31 Dez 2018 00:00:00 GMT
         nBlockEnforceInvalidUTXO = 1001; //Start enforcing the invalid UTXO's
 
-	genesis = CreateGenesisBlock(1399939200, 857701, 0x1e3fffff, 1, 50 * COIN);
-	genesis.print();
-        hashGenesisBlock = genesis.GetHash();
-	//printf("MAIN genesis.GetHash = %s\n", genesis.GetHash().ToString().c_str());
-	//printf("MAIN genesis.MerkleRoot = %s\n", genesis.hashMerkleRoot.ToString().c_str());
+        const char* pszTimestamp = "Since 2014!";
+        CMutableTransaction txNew;
+        txNew.vin.resize(1);
+        txNew.vout.resize(1);
+        txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        txNew.vout[0].nValue = 1 * COIN;
+        txNew.vout[0].scriptPubKey = CScript() << ParseHex("046acdcdecdea7b6b17c217f27e73ca2acbddda8e70570ff355dbe1af30347d280f66067d136a797fce4d01227cc5be988676184d842930765fcce5dc011ad158e") << OP_CHECKSIG;
+        genesis.vtx.push_back(txNew);
+        genesis.hashPrevBlock = 0;
+        genesis.hashMerkleRoot = genesis.BuildMerkleTree();
+        genesis.nVersion = 1;
+        genesis.nTime = 1537366286;
+        genesis.nBits = 0x1e3fffff;
+        genesis.nNonce = 857701;
+	//printf("MAIN = %s\n", genesis.ToString().c_str());
 
-        assert(hashGenesisBlock == uint256("0ea77c761a5194ca3137276ac426aefb024815b9d620dc843cb96646b582bb8c"));
-        assert(genesis.hashMerkleRoot == uint256("159006cc59cd487c169af4bc928ecad5b22f2468c1d4d5914b9e5d5e4a7df635"));
+        hashGenesisBlock = genesis.GetHash();
+        assert(hashGenesisBlock == uint256("0xcf0e34e039bde2f97264768907c204e2703339f5cfb38f65440cee7f9adfb794"));
+        assert(genesis.hashMerkleRoot == uint256("0x07fab1cd4f71e2e3a036f201590ddb4be37bb4573dfca63d3216405f3650dc18"));
 
         vSeeds.push_back(CDNSSeedData("seed0",  "seed.martexcoin.org"));
         vSeeds.push_back(CDNSSeedData("seed1",  "seed1.martexcoin.org"));
@@ -204,13 +187,13 @@ public:
 
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
 
-        fRequireRPCPassword = true;
-        fMiningRequiresPeers = true;
+        fRequireRPCPassword = false; //default true
+        fMiningRequiresPeers = false; //default true
         fAllowMinDifficultyBlocks = false;
         fDefaultConsistencyChecks = false;
         fRequireStandard = true;
-        fMineBlocksOnDemand = false;
-        fSkipProofOfWorkCheck = true;
+        fMineBlocksOnDemand = true;  //default false
+        fSkipProofOfWorkCheck = false;  //default false
         fTestnetToBeDeprecatedFieldRPC = false;
         fHeadersFirstSyncingActive = false;
 
@@ -243,8 +226,20 @@ public:
 static CMainParams mainParams;
 
 /**
- * Testnet (v3)
+ * TestNet network
+ *
+ * Build the genesis block. Note that the output of its generation
+ * transaction cannot be spent since it did not originally exist in the
+ * database.
+ *
+ *   CBlock(hash=4c02cb69c798414bdb443382818f9f5619e52c198ad91586b6515ac40e888563, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000,
+ *    hashMerkleRoot=d5033f45952ca385ef3a2a9ce938156bbf004c09982ed4814253cca72a9569c4, nTime=1537366286, nBits=1e3fffff, nNonce=857701, vtx=2)
+ *    CTransaction(hash=07fab1cd4f, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+ *      CTxIn(COutPoint(0000000000000000000000000000000000000000000000000000000000000000, 4294967295), coinbase 04ffff001d01040b53696e6365203230313421)
+ *      CTxOut(nValue=1.00000000, scriptPubKey=046acdcdecdea7b6b17c217f27e73c)
+ *    vMerkleTree:  d5033f45952ca385ef3a2a9ce938156bbf004c09982ed4814253cca72a9569c4
  */
+
 class CTestNetParams : public CMainParams
 {
 public:
@@ -272,14 +267,25 @@ public:
         nZerocoinStartHeight = 201;
 	nSubsidyHalvingInterval = 150;
 
-        genesis = CreateGenesisBlock(1399939200, 857701, 0x1e3fffff, 1, 50 * COIN);
-	genesis.print();
-        hashGenesisBlock = genesis.GetHash();
-        //printf("TESTNET genesis.GetHash = %s\n", genesis.GetHash().ToString().c_str());
-        //printf("TESTNET genesis.MerkleRoot = %s\n", genesis.hashMerkleRoot.ToString().c_str());
+        const char* pszTimestamp = "Since 2014!";
+        CMutableTransaction txNew;
+        txNew.vin.resize(1);
+        txNew.vout.resize(1);
+        txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        txNew.vout[0].nValue = 1 * COIN;
+        txNew.vout[0].scriptPubKey = CScript() << ParseHex("046acdcdecdea7b6b17c217f27e73ca2acbddda8e70570ff355dbe1af30347d280f66067d136a797fce4d01227cc5be988676184d842930765fcce5dc011ad158e") << OP_CHECKSIG;
+        genesis.vtx.push_back(txNew);
+        genesis.hashPrevBlock = 0;
+        genesis.hashMerkleRoot = genesis.BuildMerkleTree();
+        genesis.nVersion = 1;
+        genesis.nTime = 1537366286;
+        genesis.nBits = 0x1e3fffff;
+        genesis.nNonce = 857701;
+        //printf("TESTNET = %s\n", genesis.ToString().c_str());
 
-        assert(hashGenesisBlock == uint256("0ea77c761a5194ca3137276ac426aefb024815b9d620dc843cb96646b582bb8c"));
-        assert(genesis.hashMerkleRoot == uint256("159006cc59cd487c169af4bc928ecad5b22f2468c1d4d5914b9e5d5e4a7df635"));
+        hashGenesisBlock = genesis.GetHash();
+        assert(hashGenesisBlock == uint256("0x4c02cb69c798414bdb443382818f9f5619e52c198ad91586b6515ac40e888563"));
+        assert(genesis.hashMerkleRoot == uint256("0xd5033f45952ca385ef3a2a9ce938156bbf004c09982ed4814253cca72a9569c4"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -316,8 +322,20 @@ public:
 static CTestNetParams testNetParams;
 
 /**
- * Regression test
+ * RegTest network
+ *
+ * Build the genesis block. Note that the output of its generation
+ * transaction cannot be spent since it did not originally exist in the
+ * database.
+ *
+ *   CBlock(hash=7c3cbaa93b112a59d234b0553016e65604fa5c1763e3b429a038a36395720632, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000,
+ *    hashMerkleRoot=2ec44783dd8d741855203e4ee2cfb86c7c8a1da087e70ed0dcfdccc1d40f3c89, nTime=1537366286, nBits=1e3fffff, nNonce=857701, vtx=3)
+ *    CTransaction(hash=07fab1cd4f, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+ *      CTxIn(COutPoint(0000000000000000000000000000000000000000000000000000000000000000, 4294967295), coinbase 04ffff001d01040b53696e6365203230313421)
+ *      CTxOut(nValue=1.00000000, scriptPubKey=046acdcdecdea7b6b17c217f27e73c)
+ *    vMerkleTree:  2ec44783dd8d741855203e4ee2cfb86c7c8a1da087e70ed0dcfdccc1d40f3c89
  */
+
 class CRegTestParams : public CTestNetParams
 {
 public:
@@ -340,14 +358,25 @@ public:
         bnProofOfWorkLimit = ~uint256(0) >> 16;
         nDefaultPort = 31315;
 
-        genesis = CreateGenesisBlock(1399939200, 857701, 0x1e3fffff, 1, 50 * COIN);
-	genesis.print();
-        hashGenesisBlock = genesis.GetHash();
-        //printf("REGTEST genesis.GetHash = %s\n", genesis.GetHash().ToString().c_str());
-        //printf("REGTEST genesis.MerkleRoot = %s\n", genesis.hashMerkleRoot.ToString().c_str());
+        const char* pszTimestamp = "Since 2014!";
+        CMutableTransaction txNew;
+        txNew.vin.resize(1);
+        txNew.vout.resize(1);
+        txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        txNew.vout[0].nValue = 1 * COIN;
+        txNew.vout[0].scriptPubKey = CScript() << ParseHex("046acdcdecdea7b6b17c217f27e73ca2acbddda8e70570ff355dbe1af30347d280f66067d136a797fce4d01227cc5be988676184d842930765fcce5dc011ad158e") << OP_CHECKSIG;
+        genesis.vtx.push_back(txNew);
+        genesis.hashPrevBlock = 0;
+        genesis.hashMerkleRoot = genesis.BuildMerkleTree();
+        genesis.nVersion = 1;
+        genesis.nTime = 1537366286;
+        genesis.nBits = 0x1e3fffff;
+        genesis.nNonce = 857701;
+        //printf("REGTEST = %s\n", genesis.ToString().c_str());
 
-        assert(hashGenesisBlock == uint256("0ea77c761a5194ca3137276ac426aefb024815b9d620dc843cb96646b582bb8c"));
-        assert(genesis.hashMerkleRoot == uint256("159006cc59cd487c169af4bc928ecad5b22f2468c1d4d5914b9e5d5e4a7df635"));
+        hashGenesisBlock = genesis.GetHash();
+        assert(hashGenesisBlock == uint256("0x7c3cbaa93b112a59d234b0553016e65604fa5c1763e3b429a038a36395720632"));
+        assert(genesis.hashMerkleRoot == uint256("0x2ec44783dd8d741855203e4ee2cfb86c7c8a1da087e70ed0dcfdccc1d40f3c89"));
 
         vFixedSeeds.clear(); //! Testnet mode doesn't have any fixed seeds.
         vSeeds.clear();      //! Testnet mode doesn't have any DNS seeds.

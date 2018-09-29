@@ -109,7 +109,7 @@ static const unsigned int MAX_REJECT_MESSAGE_LENGTH = 111;
 /** Enable bloom filter */
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
-static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
+static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60; //* 1588; // 13/05/2014 first version MXT
 
 /** "reject" message codes */
 static const unsigned char REJECT_MALFORMED = 0x01;

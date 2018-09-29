@@ -35,6 +35,7 @@
 #include "primitives/zerocoin.h"
 #include "libzerocoin/Denominations.h"
 
+#include <atomic>
 #include <sstream>
 
 #include <boost/algorithm/string/replace.hpp>
@@ -2198,17 +2199,23 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 
 bool IsInitialBlockDownload()
 {
-    LOCK(cs_main);
-    if (fImporting || fReindex || fVerifyingBlocks || chainActive.Height() < Checkpoints::GetTotalBlocksEstimate())
-        return true;
-    static bool lockIBDState = false;
-    if (lockIBDState)
+    // Once this function has returned false, it must remain false.
+    static std::atomic<bool> latchToFalse{false};
+    // Optimization: pre-test latch before taking the lock.
+    if (latchToFalse.load(std::memory_order_relaxed))
         return false;
-    bool state = (chainActive.Height() < pindexBestHeader->nHeight - 24 * 6 ||
-                  pindexBestHeader->GetBlockTime() < GetTime() - nMaxTipAge);
-    if (!state)
-        lockIBDState = true;
-    return state;
+
+    LOCK(cs_main);
+    if (latchToFalse.load(std::memory_order_relaxed))
+        return false;
+    if (fImporting || fReindex)
+        return true;
+    if (chainActive.Tip() == NULL)
+        return true;
+    if (chainActive.Tip()->GetBlockTime() < (GetTime() - nMaxTipAge))
+        return true;
+    latchToFalse.store(true, std::memory_order_relaxed);
+    return false;
 }
 
 bool fLargeWorkForkFound = false;
