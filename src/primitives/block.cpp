@@ -15,7 +15,7 @@
 
 uint256 CBlockHeader::GetHash() const
 {
-    if(nVersion < 4)
+    if(nVersion < 2)
         return HashX13(BEGIN(nVersion), END(nNonce));
 
     return Hash(BEGIN(nVersion), END(nAccumulatorCheckpoint));

@@ -10,12 +10,12 @@ SetCompressor /SOLID lzma
 !define URL https://martexcoin.org
 
 # MUI Symbol Definitions
-!define MUI_ICON "/media/programas/martexcoin_2.8.0/share/pixmaps/bitcoin.ico"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "/media/programas/martexcoin_2.8.0/share/pixmaps/nsis-wizard.bmp"
+!define MUI_ICON "/home/marciano/martexcoin_2.8.x/share/pixmaps/bitcoin.ico"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "/home/marciano/martexcoin_2.8.x/share/pixmaps/nsis-wizard.bmp"
 !define MUI_WELCOMEFINISHPAGE_BITMAP_STRETCH AspectFitHeight
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
-!define MUI_HEADERIMAGE_BITMAP "/media/programas/martexcoin_2.8.0/share/pixmaps/nsis-header.bmp"
+!define MUI_HEADERIMAGE_BITMAP "/home/marciano/martexcoin_2.8.x/share/pixmaps/nsis-header.bmp"
 !define MUI_HEADERIMAGE_BITMAP_STRETCH AspectFitHeight
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
@@ -24,7 +24,7 @@ SetCompressor /SOLID lzma
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER "MarteX"
 !define MUI_FINISHPAGE_RUN $INSTDIR\martex-qt
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
-!define MUI_UNWELCOMEFINISHPAGE_BITMAP "/media/programas/martexcoin_2.8.0/share/pixmaps/nsis-wizard.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "/home/marciano/martexcoin_2.8.x/share/pixmaps/nsis-wizard.bmp"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
 # Included files
@@ -50,7 +50,7 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile /media/programas/martexcoin_2.8.0/martex-${VERSION}-win-setup.exe
+OutFile /home/marciano/martexcoin_2.8.x/martex-${VERSION}-win-setup.exe
 !if "" == "64"
 InstallDir $PROGRAMFILES64\MarteX
 !else
@@ -75,14 +75,14 @@ ShowUninstDetails show
 Section -Main SEC0000
     SetOutPath $INSTDIR
     SetOverwrite on
-    File /media/programas/martexcoin_2.8.0/release/martex-qt
-    File /oname=COPYING.txt /media/programas/martexcoin_2.8.0/COPYING
-    File /oname=readme.txt /media/programas/martexcoin_2.8.0/doc/README_windows.txt
+    File /home/marciano/martexcoin_2.8.x/release/martex-qt
+    File /oname=COPYING.txt /home/marciano/martexcoin_2.8.x/COPYING
+    File /oname=readme.txt /home/marciano/martexcoin_2.8.x/doc/README_windows.txt
     SetOutPath $INSTDIR\daemon
-    File /media/programas/martexcoin_2.8.0/release/martexd
-    File /media/programas/martexcoin_2.8.0/release/martex-cli
+    File /home/marciano/martexcoin_2.8.x/release/martexd
+    File /home/marciano/martexcoin_2.8.x/release/martex-cli
     SetOutPath $INSTDIR\doc
-    File /r /media/programas/martexcoin_2.8.0/doc\*.*
+    File /r /home/marciano/martexcoin_2.8.x/doc\*.*
     SetOutPath $INSTDIR
     WriteRegStr HKCU "${REGKEY}\Components" Main 1
 SectionEnd
